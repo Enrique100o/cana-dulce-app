@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.canadulce.app.datos.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 
 class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
@@ -207,17 +209,127 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
     fun abrirLectura(id: Int) = ejecutar {
         val sesion = estado.sesion ?: return@ejecutar
         val lectura = Lectura.desdeJson(api.solicitar("api/lecturas/$id", token = sesion.token))
-        estado = estado.copy(lectura = lectura, pantalla = Pantalla.LECTURA)
+        estado =
+            estado.copy(
+                lectura = lectura,
+                pantalla = Pantalla.LECTURA,
+                regresarAlCuestionario = false,
+                preguntas = if (estado.lectura?.id == id) estado.preguntas else emptyList(),
+                selecciones = if (estado.lectura?.id == id) estado.selecciones else emptyMap(),
+                idIntento = if (estado.lectura?.id == id) estado.idIntento else null,
+                resultado = if (estado.lectura?.id == id) estado.resultado else null,
+            )
+    }
+
+    fun abrirCuestionario() {
+        if (estado.idIntento != null && estado.resultado == null && estado.preguntas.isNotEmpty()) {
+            ir(Pantalla.CUESTIONARIO)
+            return
+        }
+        ejecutar {
+            val sesion = estado.sesion ?: return@ejecutar
+            val lectura = estado.lectura ?: return@ejecutar
+            val json = api.solicitar("api/lecturas/${lectura.id}/preguntas", token = sesion.token)
+            val lista = json.getJSONArray("datos")
+            val preguntas = List(lista.length()) { Pregunta.desdeJson(lista.getJSONObject(it)) }
+            if (preguntas.isEmpty())
+                throw ErrorApi(409, "Esta historia todavía no tiene preguntas.")
+            suspend fun pendiente(): Int? {
+                val datos =
+                    api.solicitar(
+                            "api/intentos?idLectura=${lectura.id}&estado=EN_PROGRESO",
+                            token = sesion.token,
+                        )
+                        .getJSONArray("datos")
+                return if (datos.length() > 0) datos.getJSONObject(0).getInt("idIntento") else null
+            }
+            val id =
+                pendiente()
+                    ?: try {
+                        api.solicitar(
+                                "api/intentos",
+                                "POST",
+                                JSONObject().put("idLectura", lectura.id),
+                                sesion.token,
+                            )
+                            .getInt("idIntento")
+                    } catch (fallo: ErrorApi) {
+                        if (fallo.estado != 409) throw fallo
+                        pendiente() ?: throw fallo
+                    }
+            estado =
+                estado.copy(
+                    pantalla = Pantalla.CUESTIONARIO,
+                    preguntas = preguntas,
+                    idIntento = id,
+                    selecciones = emptyMap(),
+                    resultado = null,
+                    regresarAlCuestionario = false,
+                )
+        }
+    }
+
+    fun elegirRespuesta(idPregunta: Int, idOpcion: Int) {
+        if (!estado.cargando && estado.resultado == null) {
+            estado = estado.copy(selecciones = estado.selecciones + (idPregunta to idOpcion))
+        }
+    }
+
+    fun releer() {
+        ir(Pantalla.LECTURA)
+        estado = estado.copy(regresarAlCuestionario = true)
+    }
+
+    fun finalizarMision() {
+        if (estado.preguntas.isEmpty() || estado.selecciones.size != estado.preguntas.size) {
+            return error("Elige una respuesta para cada pregunta antes de finalizar.")
+        }
+        ejecutar {
+            val sesion = estado.sesion ?: return@ejecutar
+            val id = estado.idIntento ?: return@ejecutar
+            val respuestas = JSONArray()
+            estado.preguntas.forEach { pregunta ->
+                respuestas.put(
+                    JSONObject()
+                        .put("idPregunta", pregunta.id)
+                        .put("idOpcion", estado.selecciones.getValue(pregunta.id)),
+                )
+            }
+            val resultado =
+                api.solicitar(
+                    "api/intentos/$id/finalizar",
+                    "POST",
+                    JSONObject().put("respuestas", respuestas),
+                    sesion.token,
+                )
+            estado =
+                estado.copy(
+                    pantalla = Pantalla.RESULTADO,
+                    resultado =
+                        Resultado(
+                            resultado.getDouble("puntaje"),
+                            resultado.getInt("estrellas"),
+                            resultado.getInt("cantidadCorrectas"),
+                            resultado.getInt("totalPreguntas"),
+                        ),
+                    regresarAlCuestionario = false,
+                )
+        }
     }
 
     fun cambiarTexto(cambio: Int) {
         val tamano = (estado.tamanoTexto + cambio).coerceIn(18, 32)
         estado = estado.copy(tamanoTexto = tamano)
-        preferencias.edit().putInt("tamano", tamano).apply()
+        preferencias.edit { putInt("tamano", tamano) }
     }
 
     fun volver() {
-        if (estado.pantalla == Pantalla.LECTURA) {
+        if (estado.pantalla == Pantalla.LECTURA && estado.regresarAlCuestionario) {
+            ir(Pantalla.CUESTIONARIO)
+        } else if (
+            estado.pantalla in listOf(Pantalla.LECTURA, Pantalla.CUESTIONARIO, Pantalla.RESULTADO)
+        ) {
+            estado = estado.copy(regresarAlCuestionario = false)
             ir(if (estado.sesion?.rol == "DOCENTE") Pantalla.PANEL_DOCENTE else Pantalla.MISIONES)
         } else ir(Pantalla.INICIO)
     }

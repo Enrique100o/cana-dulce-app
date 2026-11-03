@@ -90,6 +90,9 @@ calcula los resultados y protege la edición de actividades que ya tienen intent
 
 Incluye HU-01 a HU-05: registro, inicio y cierre de sesión estudiantil, acceso docente,
 misiones filtradas por grado con búsqueda y lectura con tamaño de texto ajustable.
+Cada misión muestra dificultad y cantidad de preguntas. Desde la lectura se abre el
+cuestionario; se puede releer y volver conservando las selecciones durante la actividad,
+incluso al girar la pantalla. La entrega muestra el puntaje y las estrellas devueltos por la API.
 La sesión se cifra con Android Keystore y se valida al reabrir la aplicación. Los códigos
 de acceso no se guardan en el teléfono. El área docente permite consultar lecturas y estudiantes.
 
@@ -104,8 +107,10 @@ Desde PowerShell, en `android`, `./gradlew.bat :app:assembleDebug` genera el APK
 `app/build/outputs/apk/debug/app-debug.apk`. Es una compilación de desarrollo para la
 sustentación; cada computador puede generar una firma de depuración distinta.
 
-Los cuestionarios, resultados, insignias y administración mediante pantallas Android
-corresponden al Sprint 2. Sus operaciones del backend ya están implementadas.
+El flujo básico de cuestionario y resultado habilita el recorrido exigido por HU-05.
+El cierre independiente de HU-06 y HU-07, el progreso e insignias, la administración completa
+mediante pantallas Android y la gamificación ampliada corresponden al Sprint 2 y deben
+comprobarse frente a sus propios criterios. Todas sus operaciones del backend están implementadas.
 
 ## Verificación
 

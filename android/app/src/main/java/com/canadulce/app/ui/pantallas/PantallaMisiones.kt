@@ -43,6 +43,14 @@ fun TarjetaMision(lectura: Lectura, onAbrir: () -> Unit, cargando: Boolean) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
+                "Dificultad: " +
+                    lectura.dificultad.lowercase().replaceFirstChar { it.uppercase() } +
+                    " · " +
+                    lectura.totalPreguntas +
+                    if (lectura.totalPreguntas == 1) " pregunta" else " preguntas",
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
                 "Abrir historia →",
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,

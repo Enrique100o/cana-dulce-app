@@ -41,6 +41,7 @@ data class Lectura(
     val categoria: String,
     val estado: String,
     val contenido: String = "",
+    val totalPreguntas: Int = 0,
 ) {
     companion object {
         fun desdeJson(json: JSONObject) =
@@ -52,6 +53,7 @@ data class Lectura(
                 if (json.isNull("categoria")) "Historias" else json.getString("categoria"),
                 json.getString("estado"),
                 json.optString("contenido", ""),
+                json.optInt("totalPreguntasActivas", 0),
             )
     }
 }
@@ -63,6 +65,8 @@ enum class Pantalla {
     DOCENTE,
     MISIONES,
     LECTURA,
+    CUESTIONARIO,
+    RESULTADO,
     PANEL_DOCENTE,
     RECUPERAR,
 }
@@ -79,4 +83,29 @@ data class EstadoApp(
     val busqueda: String = "",
     val aliasSugerido: String = "",
     val tamanoTexto: Int = 20,
+    val preguntas: List<Pregunta> = emptyList(),
+    val selecciones: Map<Int, Int> = emptyMap(),
+    val idIntento: Int? = null,
+    val resultado: Resultado? = null,
+    val regresarAlCuestionario: Boolean = false,
 )
+
+data class Opcion(val id: Int, val texto: String)
+
+data class Pregunta(val id: Int, val enunciado: String, val opciones: List<Opcion>) {
+    companion object {
+        fun desdeJson(json: JSONObject): Pregunta {
+            val opciones = json.getJSONArray("opciones")
+            return Pregunta(
+                json.getInt("idPregunta"),
+                json.getString("enunciado"),
+                List(opciones.length()) {
+                    val opcion = opciones.getJSONObject(it)
+                    Opcion(opcion.getInt("idOpcion"), opcion.getString("texto"))
+                },
+            )
+        }
+    }
+}
+
+data class Resultado(val puntaje: Double, val estrellas: Int, val correctas: Int, val total: Int)

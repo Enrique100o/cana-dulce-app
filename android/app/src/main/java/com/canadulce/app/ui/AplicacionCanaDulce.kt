@@ -17,7 +17,14 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
     val estado = modelo.estado
     BackHandler(
         estado.pantalla in
-            listOf(Pantalla.REGISTRO, Pantalla.ESTUDIANTE, Pantalla.DOCENTE, Pantalla.LECTURA),
+            listOf(
+                Pantalla.REGISTRO,
+                Pantalla.ESTUDIANTE,
+                Pantalla.DOCENTE,
+                Pantalla.LECTURA,
+                Pantalla.CUESTIONARIO,
+                Pantalla.RESULTADO,
+            ),
     ) {
         modelo.volver()
     }
@@ -69,7 +76,24 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                         modelo::cerrarSesion,
                         modelo::quitarMensaje,
                     )
-                Pantalla.LECTURA -> PantallaLectura(estado, modelo::volver, modelo::cambiarTexto)
+                Pantalla.LECTURA ->
+                    PantallaLectura(
+                        estado,
+                        modelo::volver,
+                        modelo::cambiarTexto,
+                        modelo::abrirCuestionario,
+                        modelo::quitarMensaje,
+                    )
+                Pantalla.CUESTIONARIO ->
+                    PantallaCuestionario(
+                        estado,
+                        modelo::volver,
+                        modelo::releer,
+                        modelo::elegirRespuesta,
+                        modelo::finalizarMision,
+                        modelo::quitarMensaje,
+                    )
+                Pantalla.RESULTADO -> PantallaResultado(estado, modelo::volver)
                 Pantalla.RECUPERAR ->
                     Column(
                         Modifier.fillMaxSize().padding(24.dp),

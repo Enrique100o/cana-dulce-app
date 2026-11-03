@@ -13,19 +13,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.canadulce.app.datos.EstadoApp
+import com.canadulce.app.ui.componentes.BotonPrincipal
+import com.canadulce.app.ui.componentes.MensajePantalla
 
 @Composable
-fun PantallaLectura(estado: EstadoApp, onVolver: () -> Unit, onTamano: (Int) -> Unit) {
+fun PantallaLectura(
+    estado: EstadoApp,
+    onVolver: () -> Unit,
+    onTamano: (Int) -> Unit,
+    onCuestionario: () -> Unit,
+    onCerrarMensaje: () -> Unit,
+) {
     val lectura = estado.lectura ?: return
     val desplazamiento = rememberScrollState()
-    val progreso =
-        if (desplazamiento.maxValue <= 0 || desplazamiento.maxValue == Int.MAX_VALUE) 0f
-        else (desplazamiento.value.toFloat() / desplazamiento.maxValue).coerceIn(0f, 1f)
     Column(
         Modifier.fillMaxSize().padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TextButton(onClick = onVolver) { Text("‹ Volver a mis lecturas") }
+        TextButton(onClick = onVolver) {
+            Text(
+                if (estado.regresarAlCuestionario) "‹ Volver al cuestionario"
+                else "‹ Volver a mis lecturas",
+            )
+        }
         Text(
             lectura.categoria + " · " + lectura.grado + ".º grado",
             color = MaterialTheme.colorScheme.primary,
@@ -70,7 +80,18 @@ fun PantallaLectura(estado: EstadoApp, onVolver: () -> Unit, onTamano: (Int) -> 
                 }
             }
         }
-        LinearProgressIndicator(progress = { progreso }, modifier = Modifier.fillMaxWidth())
+        MensajePantalla(estado.error, estado.aviso, onCerrarMensaje)
+        LinearProgressIndicator(
+            progress = {
+                when (desplazamiento.maxValue) {
+                    Int.MAX_VALUE -> 0f
+                    0 -> 1f
+                    else ->
+                        (desplazamiento.value.toFloat() / desplazamiento.maxValue).coerceIn(0f, 1f)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
         Column(
             Modifier.weight(1f).verticalScroll(desplazamiento).padding(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp),
@@ -87,6 +108,15 @@ fun PantallaLectura(estado: EstadoApp, onVolver: () -> Unit, onTamano: (Int) -> 
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(24.dp))
+        }
+        if (estado.sesion?.rol == "ESTUDIANTE") {
+            BotonPrincipal(
+                if (estado.regresarAlCuestionario) "Volver al cuestionario"
+                else "Ir al cuestionario",
+                cargando = estado.cargando,
+                onClick = if (estado.regresarAlCuestionario) onVolver else onCuestionario,
+            )
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
