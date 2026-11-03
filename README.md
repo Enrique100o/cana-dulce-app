@@ -1,7 +1,7 @@
 # Caña Dulce
 
-Aplicación de comprensión lectora para estudiantes de tercero y cuarto. Esta versión
-reconstruye el proyecto por historias de usuario y separa la aplicación Android de la API.
+Aplicación de comprensión lectora para estudiantes de tercero y cuarto, con un cliente
+Android en Kotlin, una API en Node.js y una base de datos MySQL.
 
 ## Servicios publicados
 
@@ -16,9 +16,10 @@ La dirección `/health` devuelve JSON con el estado del servidor y su conexión 
 
 - `backend/src`: servidor Express, rutas, validaciones, sesiones y acceso a MySQL.
 - `backend/database/schema.sql`: estructura de las seis tablas.
-- `backend/database/migrar-datos.js`: utilidad utilizada para trasladar los datos locales.
 - `backend/certificados/aiven-ca.pem`: certificado público para verificar MySQL en Aiven.
 - `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
+- `android/app/src/main/java/com/canadulce/app/ui/pantallas`: una pantalla por archivo.
+- `android/app/src/main/java/com/canadulce/app/ui/componentes`: controles y tarjetas compartidos.
 - `backend/docs/API.md`: contrato de las 19 operaciones de negocio.
 - `backend/postman/CanaDulce.postman_collection.json`: colección ordenada de pruebas HTTP.
 - `render.yaml`: configuración de despliegue del backend.
@@ -47,10 +48,9 @@ Las tablas son `ESTUDIANTE`, `LECTURA`, `PREGUNTA`, `OPCION`, `INTENTO` y `RESPU
 Los nombres en mayúsculas se conservan porque el servidor diferencia mayúsculas y minúsculas.
 Los códigos de acceso se almacenan como hashes scrypt y las sesiones utilizan JWT.
 
-La migración inicial ya fue realizada. La utilidad de migración requiere una configuración
-separada con `DB_*` para el origen y `CLOUD_DB_*` para el destino. No debe ejecutarse con
-el `.env` actual de la aplicación, que ya apunta a Aiven. El destino debe estar vacío;
-la utilidad rechaza tablas con datos para evitar sobrescrituras.
+Para crear una base propia, ejecuta `backend/database/schema.sql` en MySQL 8 y configura
+el usuario de la API y sus credenciales en `.env`. La instalación actual ya utiliza la base
+de Aiven y conserva los datos de la demostración.
 
 ## Despliegue en Render
 

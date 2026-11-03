@@ -79,6 +79,7 @@ async function autenticar(req, res, next) {
 
   next();
 }
+
 function permitirRol(rolPermitido) {
   if (!["ESTUDIANTE", "DOCENTE"].includes(rolPermitido)) {
     throw new Error("Configura un rol válido para esta ruta.");

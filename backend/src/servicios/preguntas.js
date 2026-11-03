@@ -30,26 +30,20 @@ async function guardarOpciones(idPregunta, opciones, conexion) {
 
   return opcionesGuardadas;
 }
+
 async function crearPregunta(idLectura, datos) {
   return ejecutarTransaccion(async (conexion) => {
     const lectura = await obtenerLecturaParaEdicion(idLectura, conexion);
 
     if (!lectura) {
-      const error = new Error("No se encontró la lectura.");
-
-      error.estadoHTTP = 404;
-
-      throw error;
+      fallar(404, "No se encontró la lectura.");
     }
 
     if (lectura.bloqueadaParaEdicion) {
-      const error = new Error(
+      fallar(
+        409,
         "La lectura ya tiene intentos y no permite cambiar sus preguntas.",
       );
-
-      error.estadoHTTP = 409;
-
-      throw error;
     }
 
     const [resultado] = await conexion.execute(
@@ -82,6 +76,7 @@ async function crearPregunta(idLectura, datos) {
     };
   });
 }
+
 async function obtenerOpciones(
   idPregunta,
   incluirCorrectas = false,
@@ -113,6 +108,7 @@ async function obtenerOpciones(
     return opcion;
   });
 }
+
 async function obtenerPreguntas(
   idLectura,
   administrativa = false,
@@ -164,6 +160,7 @@ async function obtenerPreguntas(
 
   return preguntas;
 }
+
 async function editarPregunta(idPregunta, datos, desactivar = false) {
   return ejecutarTransaccion(async (conexion) => {
     const [[referencia]] = await conexion.execute(
@@ -216,9 +213,7 @@ const desactivarPregunta = (idPregunta) =>
   editarPregunta(idPregunta, null, true);
 
 module.exports = {
-  guardarOpciones,
   crearPregunta,
-  obtenerOpciones,
   obtenerPreguntas,
   actualizarPregunta,
   desactivarPregunta,

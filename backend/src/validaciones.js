@@ -39,6 +39,7 @@ function validarRegistroEstudiante(datos) {
     },
   };
 }
+
 function validarInicioSesionEstudiante(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return { error: "Envía el alias y el código de acceso." };
@@ -74,6 +75,7 @@ function validarInicioSesionEstudiante(datos) {
     },
   };
 }
+
 function validarInicioSesionDocente(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return { error: "Envía el usuario y la contraseña." };
@@ -111,6 +113,7 @@ function validarInicioSesionDocente(datos) {
     },
   };
 }
+
 function validarTexto(valor, nombreCampo, minimo, maximo) {
   if (typeof valor !== "string") {
     return {
@@ -131,6 +134,7 @@ function validarTexto(valor, nombreCampo, minimo, maximo) {
     datos: texto,
   };
 }
+
 function validarCreacionLectura(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return { error: "Envía los datos de la lectura." };
@@ -204,6 +208,7 @@ function validarCreacionLectura(datos) {
     },
   };
 }
+
 function validarConsultaLecturas(parametros) {
   if (
     !parametros ||
@@ -257,6 +262,7 @@ function validarConsultaLecturas(parametros) {
     datos: filtros,
   };
 }
+
 function validarIdentificador(valor, nombreCampo = "El identificador") {
   if (typeof valor !== "string" || !/^[1-9]\d*$/.test(valor)) {
     return {
@@ -276,6 +282,7 @@ function validarIdentificador(valor, nombreCampo = "El identificador") {
     datos: identificador,
   };
 }
+
 function validarOpcion(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return { error: "Cada opción debe ser un objeto." };
@@ -317,6 +324,7 @@ function validarOpcion(datos) {
     },
   };
 }
+
 function validarOpciones(opciones) {
   if (!Array.isArray(opciones) || opciones.length < 2 || opciones.length > 4) {
     return {
@@ -372,6 +380,7 @@ function validarOpciones(opciones) {
     datos: opcionesValidadas,
   };
 }
+
 function validarCreacionPregunta(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return {
@@ -433,6 +442,7 @@ function validarCreacionPregunta(datos) {
     },
   };
 }
+
 function validarActualizacionLectura(datos) {
   if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
     return {
@@ -495,15 +505,12 @@ function validarActualizacionLectura(datos) {
   };
 }
 module.exports = {
-  validarTexto,
   validarRegistroEstudiante,
   validarInicioSesionEstudiante,
   validarInicioSesionDocente,
   validarCreacionLectura,
   validarConsultaLecturas,
   validarIdentificador,
-  validarOpcion,
-  validarOpciones,
   validarCreacionPregunta,
   validarActualizacionLectura,
 };

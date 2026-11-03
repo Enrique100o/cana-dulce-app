@@ -18,6 +18,7 @@ const {
 const { autenticar, permitirRol } = require("../middleware/autenticacion");
 const { crearPregunta, obtenerPreguntas } = require("../servicios/preguntas");
 const { ejecutarTransaccion } = require("../transacciones");
+const { sinCuerpo, filtros } = require("../http");
 const router = express.Router();
 
 router.post("/", autenticar, permitirRol("DOCENTE"), async (req, res) => {
@@ -65,16 +66,7 @@ router.post("/", autenticar, permitirRol("DOCENTE"), async (req, res) => {
   }
 });
 router.get("/", autenticar, async (req, res) => {
-  if (
-    req.body !== undefined ||
-    Number(req.get("Content-Length") || 0) > 0 ||
-    req.get("Transfer-Encoding")
-  ) {
-    return res.status(400).json({
-      estado: "error",
-      mensaje: "Esta consulta no recibe un cuerpo.",
-    });
-  }
+  sinCuerpo(req);
 
   const validacion = validarConsultaLecturas(req.query);
 
@@ -179,17 +171,8 @@ router.get("/", autenticar, async (req, res) => {
   }
 });
 router.get("/:id", autenticar, async (req, res) => {
-  if (
-    req.body !== undefined ||
-    Number(req.get("Content-Length") || 0) > 0 ||
-    req.get("Transfer-Encoding") ||
-    Object.keys(req.query).length > 0
-  ) {
-    return res.status(400).json({
-      estado: "error",
-      mensaje: "Esta consulta no recibe filtros ni cuerpo.",
-    });
-  }
+  sinCuerpo(req);
+  filtros(req);
 
   const validacion = validarIdentificador(
     req.params.id,
@@ -283,17 +266,8 @@ router.post(
   },
 );
 router.get("/:id/preguntas", autenticar, async (req, res) => {
-  if (
-    req.body !== undefined ||
-    Number(req.get("Content-Length") || 0) > 0 ||
-    req.get("Transfer-Encoding") ||
-    Object.keys(req.query).length > 0
-  ) {
-    return res.status(400).json({
-      estado: "error",
-      mensaje: "Esta consulta no recibe filtros ni cuerpo.",
-    });
-  }
+  sinCuerpo(req);
+  filtros(req);
 
   const identificador = validarIdentificador(
     req.params.id,
@@ -402,17 +376,8 @@ router.put("/:id", autenticar, permitirRol("DOCENTE"), async (req, res) => {
   }
 });
 router.delete("/:id", autenticar, permitirRol("DOCENTE"), async (req, res) => {
-  if (
-    req.body !== undefined ||
-    Number(req.get("Content-Length") || 0) > 0 ||
-    req.get("Transfer-Encoding") ||
-    Object.keys(req.query).length > 0
-  ) {
-    return res.status(400).json({
-      estado: "error",
-      mensaje: "Esta operación no recibe filtros ni cuerpo.",
-    });
-  }
+  sinCuerpo(req);
+  filtros(req);
 
   const identificador = validarIdentificador(
     req.params.id,

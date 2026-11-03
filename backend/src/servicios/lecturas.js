@@ -1,5 +1,6 @@
 const pool = require("../db");
 const { ejecutarTransaccion } = require("../transacciones");
+const { fallar } = require("../http");
 
 async function esLecturaPublicable(idLectura, conexion = pool) {
   const [preguntas] = await conexion.execute(
@@ -25,6 +26,7 @@ async function esLecturaPublicable(idLectura, conexion = pool) {
     })
   );
 }
+
 async function obtenerLectura(idLectura, conexion = pool) {
   const [lecturas] = await conexion.execute(
     `SELECT
@@ -63,6 +65,7 @@ async function obtenerLectura(idLectura, conexion = pool) {
     bloqueadaParaEdicion: Number(lectura.bloqueadaParaEdicion) === 1,
   };
 }
+
 async function obtenerLecturaParaEdicion(idLectura, conexion) {
   const [lecturas] = await conexion.execute(
     `SELECT idLectura
@@ -78,6 +81,7 @@ async function obtenerLecturaParaEdicion(idLectura, conexion) {
 
   return obtenerLectura(idLectura, conexion);
 }
+
 async function puedeConsultarLectura(sesion, lectura, conexion = pool) {
   if (!sesion || !lectura) {
     return false;
@@ -112,16 +116,13 @@ async function puedeConsultarLectura(sesion, lectura, conexion = pool) {
     (await esLecturaPublicable(lectura.idLectura, conexion))
   );
 }
+
 async function actualizarLectura(idLectura, datos) {
   return ejecutarTransaccion(async (conexion) => {
     const lectura = await obtenerLecturaParaEdicion(idLectura, conexion);
 
     if (!lectura) {
-      const error = new Error("No se encontró la lectura.");
-
-      error.estadoHTTP = 404;
-
-      throw error;
+      fallar(404, "No se encontró la lectura.");
     }
 
     const camposContenido = [
@@ -137,26 +138,20 @@ async function actualizarLectura(idLectura, datos) {
     );
 
     if (lectura.bloqueadaParaEdicion && cambiaContenido) {
-      const error = new Error(
+      fallar(
+        409,
         "El contenido de una lectura con intentos no se puede modificar.",
       );
-
-      error.estadoHTTP = 409;
-
-      throw error;
     }
 
     if (
       datos.estado === "ACTIVA" &&
       !(await esLecturaPublicable(idLectura, conexion))
     ) {
-      const error = new Error(
+      fallar(
+        409,
         "La lectura no tiene un cuestionario válido para publicarse.",
       );
-
-      error.estadoHTTP = 409;
-
-      throw error;
     }
 
     await conexion.execute(
@@ -182,16 +177,13 @@ async function actualizarLectura(idLectura, datos) {
     return obtenerLectura(idLectura, conexion);
   });
 }
+
 async function desactivarLectura(idLectura) {
   return ejecutarTransaccion(async (conexion) => {
     const lectura = await obtenerLecturaParaEdicion(idLectura, conexion);
 
     if (!lectura) {
-      const error = new Error("No se encontró la lectura.");
-
-      error.estadoHTTP = 404;
-
-      throw error;
+      fallar(404, "No se encontró la lectura.");
     }
 
     await conexion.execute(

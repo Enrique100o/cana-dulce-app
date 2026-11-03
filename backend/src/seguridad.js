@@ -24,6 +24,7 @@ async function crearHashCodigo(codigo) {
     hash.toString("hex"),
   ].join("$");
 }
+
 async function verificarCodigo(codigo, hashGuardado) {
   if (typeof codigo !== "string" || typeof hashGuardado !== "string") {
     return false;

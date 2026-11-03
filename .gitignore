@@ -8,3 +8,12 @@ node_modules/
 .kotlin/
 local.properties
 build/
+*.iml
+.DS_Store
+.externalNativeBuild/
+.cxx/
+captures/
+*.apk
+*.aab
+*.jks
+*.keystore

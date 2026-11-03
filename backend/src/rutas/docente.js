@@ -1,14 +1,10 @@
 const express = require("express");
-
 const { validarIdentificador } = require("../validaciones");
-
 const { autenticar, permitirRol } = require("../middleware/autenticacion");
-
 const { ejecutarTransaccion } = require("../transacciones");
-
 const { obtenerLecturaParaEdicion } = require("../servicios/lecturas");
-
 const { obtenerPreguntas } = require("../servicios/preguntas");
+const { sinCuerpo, filtros } = require("../http");
 
 const router = express.Router();
 
@@ -17,17 +13,8 @@ router.get(
   autenticar,
   permitirRol("DOCENTE"),
   async (req, res) => {
-    if (
-      req.body !== undefined ||
-      Number(req.get("Content-Length") || 0) > 0 ||
-      req.get("Transfer-Encoding") ||
-      Object.keys(req.query).some((campo) => campo !== "estado")
-    ) {
-      return res.status(400).json({
-        estado: "error",
-        mensaje: "Esta consulta no recibe filtros ni cuerpo.",
-      });
-    }
+    sinCuerpo(req);
+    filtros(req, ["estado"]);
 
     if (
       req.query.estado !== undefined &&

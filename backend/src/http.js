@@ -47,16 +47,6 @@ function filtros(req, permitidos = []) {
   return req.query;
 }
 
-function ruta(operacion) {
-  return async (req, res, next) => {
-    try {
-      await operacion(req, res);
-    } catch (error) {
-      next(error);
-    }
-  };
-}
-
 module.exports = {
   fallar,
   objeto,
@@ -64,5 +54,4 @@ module.exports = {
   identificador,
   sinCuerpo,
   filtros,
-  ruta,
 };

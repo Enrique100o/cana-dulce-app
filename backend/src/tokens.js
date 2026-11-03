@@ -19,6 +19,7 @@ function crearTokenEstudiante(idEstudiante) {
     audience: "cana-dulce-android",
   });
 }
+
 function crearTokenDocente() {
   return jwt.sign({ rol: "DOCENTE" }, secreto, {
     algorithm: "HS256",
@@ -28,6 +29,7 @@ function crearTokenDocente() {
     audience: "cana-dulce-android",
   });
 }
+
 function verificarToken(token) {
   return jwt.verify(token, secreto, {
     algorithms: ["HS256"],

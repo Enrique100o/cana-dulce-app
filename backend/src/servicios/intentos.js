@@ -181,7 +181,6 @@ async function finalizarIntento(sesion, idIntento, selecciones) {
 }
 
 module.exports = {
-  buscarIntento,
   permitirPropietario,
   representarIntento,
   iniciarIntento,

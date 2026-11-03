@@ -1,42 +1,14 @@
 package com.canadulce.app.ui.pantallas
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import com.canadulce.app.datos.EstadoApp
 import com.canadulce.app.ui.componentes.*
-
-@Composable
-fun CampoCodigo(
-    valor: String,
-    onCambio: (String) -> Unit,
-    docente: Boolean = false,
-    habilitado: Boolean = true,
-) {
-    var visible by remember { mutableStateOf(false) }
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onCambio,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(if (docente) "Contraseña" else "Código de acceso") },
-        singleLine = true,
-        enabled = habilitado,
-        visualTransformation =
-            if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        trailingIcon = {
-            TextButton(onClick = { visible = !visible }) { Text(if (visible) "Ocultar" else "Ver") }
-        },
-    )
-}
 
 @Composable
 fun PantallaAcceso(
