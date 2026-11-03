@@ -3,6 +3,14 @@
 Aplicación de comprensión lectora para estudiantes de tercero y cuarto. Esta versión
 reconstruye el proyecto por historias de usuario y separa la aplicación Android de la API.
 
+## Servicios publicados
+
+- API: https://cana-dulce-api.onrender.com
+- Comprobación de conexión: https://cana-dulce-api.onrender.com/health
+- Repositorio: https://github.com/Enrique100o/cana-dulce-app
+
+La dirección `/health` devuelve JSON con el estado del servidor y su conexión a MySQL.
+
 ## Estructura
 
 - `backend/src`: servidor Express, rutas, validaciones, sesiones y acceso a MySQL.
