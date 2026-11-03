@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: cana-dulce-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: DB_SSL_CA_PATH
+        value: certificados/aiven-ca.pem
+      - key: JWT_SECRET
+        sync: false
+      - key: DOCENTE_USUARIO
+        sync: false
+      - key: DOCENTE_PASSWORD_HASH
+        sync: false
