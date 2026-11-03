@@ -1,0 +1,1154 @@
+{
+  "info": {
+    "name": "Caña Dulce - API y permisos",
+    "description": "19 operaciones de negocio, salud y sesión. Ejecutar en orden con claves privadas locales. Crea su propio perfil y actividad; al terminar desactiva la lectura y conserva los datos de demostración.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://cana-dulce-api.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "usuarioDocente",
+      "value": "docente",
+      "type": "string"
+    },
+    {
+      "key": "claveDocente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "codigoPrueba",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "aliasPrueba",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sufijo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenEstudiante",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenDocente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idEstudiante",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idLectura",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idPregunta",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idOpcion",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idIntento",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Estado del servidor y MySQL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/health",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('MySQL conectado',()=>pm.expect(pm.response.json().baseDeDatos).to.eql('conectada'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Registrar estudiante de demostración",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/estudiantes",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alias\": \"{{aliasPrueba}}\",\n  \"grado\": 3,\n  \"codigoAcceso\": \"{{codigoPrueba}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const s=Date.now().toString();pm.collectionVariables.set('sufijo',s);pm.collectionVariables.set('aliasPrueba','Demo'+s);if(!pm.variables.get('codigoPrueba'))throw new Error('Define codigoPrueba (6-32 caracteres) en un entorno local.');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "const p=pm.response.json();pm.collectionVariables.set('idEstudiante',p.idEstudiante);pm.test('Sin secretos',()=>{pm.expect(p).not.to.have.property('codigoAccesoHash');pm.expect(p).not.to.have.property('codigoAcceso');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Iniciar sesión del estudiante",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/sesiones/estudiante",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alias\": \"{{aliasPrueba}}\",\n  \"codigoAcceso\": \"{{codigoPrueba}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('tokenEstudiante',pm.response.json().token);pm.test('Rol estudiantil',()=>pm.expect(pm.response.json().rol).to.eql('ESTUDIANTE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Iniciar sesión docente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/sesiones/docente",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"{{usuarioDocente}}\",\n  \"contrasena\": \"{{claveDocente}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('tokenDocente',pm.response.json().token);pm.test('Rol docente',()=>pm.expect(pm.response.json().rol).to.eql('DOCENTE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Recuperar sesión actual",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/sesiones/actual",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Identidad propia',()=>pm.expect(pm.response.json().estudiante.idEstudiante).to.eql(Number(pm.collectionVariables.get('idEstudiante'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Consultar estudiantes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/estudiantes?q={{aliasPrueba}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Perfil registrado',()=>pm.expect(pm.response.json().total).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Crear lectura en borrador",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Misión de demostración {{sufijo}}\",\n  \"contenido\": \"Una niña sembró una semilla y la cuidó cada mañana hasta que nació una planta.\",\n  \"grado\": 3,\n  \"dificultad\": \"BAJA\",\n  \"categoria\": \"Naturaleza\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('idLectura',pm.response.json().idLectura);pm.test('Aún no publicada',()=>pm.expect(pm.response.json().estado).to.eql('INACTIVA'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Crear pregunta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}/preguntas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"enunciado\": \"¿Qué sembró la niña?\",\n  \"tipo\": \"LITERAL\",\n  \"orden\": 1,\n  \"opciones\": [\n    {\n      \"texto\": \"Una semilla\",\n      \"orden\": 1,\n      \"esCorrecta\": true\n    },\n    {\n      \"texto\": \"Una piedra\",\n      \"orden\": 2,\n      \"esCorrecta\": false\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "const p=pm.response.json();pm.collectionVariables.set('idPregunta',p.idPregunta);pm.collectionVariables.set('idOpcion',p.opciones.find(o=>o.esCorrecta).idOpcion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Editar pregunta y opciones",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/preguntas/{{idPregunta}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"enunciado\": \"¿Qué sembró la niña?\",\n  \"tipo\": \"LITERAL\",\n  \"orden\": 1,\n  \"opciones\": [\n    {\n      \"texto\": \"Una semilla\",\n      \"orden\": 1,\n      \"esCorrecta\": true\n    },\n    {\n      \"texto\": \"Una piedra\",\n      \"orden\": 2,\n      \"esCorrecta\": false\n    }\n  ],\n  \"estado\": \"ACTIVA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const p=pm.response.json();pm.collectionVariables.set('idPregunta',p.idPregunta);pm.collectionVariables.set('idOpcion',p.opciones.find(o=>o.esCorrecta).idOpcion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Desactivar pregunta sin intentos",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/preguntas/{{idPregunta}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Reactivar pregunta para publicar",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/preguntas/{{idPregunta}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"enunciado\": \"¿Qué sembró la niña?\",\n  \"tipo\": \"LITERAL\",\n  \"orden\": 1,\n  \"opciones\": [\n    {\n      \"texto\": \"Una semilla\",\n      \"orden\": 1,\n      \"esCorrecta\": true\n    },\n    {\n      \"texto\": \"Una piedra\",\n      \"orden\": 2,\n      \"esCorrecta\": false\n    }\n  ],\n  \"estado\": \"ACTIVA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const p=pm.response.json();pm.collectionVariables.set('idPregunta',p.idPregunta);pm.collectionVariables.set('idOpcion',p.opciones.find(o=>o.esCorrecta).idOpcion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Ver cuestionario docente con claves",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/docente/lecturas/{{idLectura}}/preguntas?estado=ACTIVA",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Una pregunta activa',()=>pm.expect(pm.response.json().total).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Publicar lectura",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Misión de demostración {{sufijo}}\",\n  \"contenido\": \"Una niña sembró una semilla y la cuidó cada mañana hasta que nació una planta.\",\n  \"grado\": 3,\n  \"dificultad\": \"BAJA\",\n  \"categoria\": \"Naturaleza\",\n  \"estado\": \"ACTIVA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Publicada',()=>pm.expect(pm.response.json().estado).to.eql('ACTIVA'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Buscar misiones por título",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas?q={{sufijo}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Solo grado propio',()=>pm.response.json().datos.forEach(l=>pm.expect(l.grado).to.eql(3)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Leer el contenido",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Texto disponible',()=>pm.expect(pm.response.json().contenido.length).to.be.above(20));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Consultar preguntas sin respuestas correctas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}/preguntas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Sin revelar claves',()=>pm.response.json().datos.forEach(p=>p.opciones.forEach(o=>pm.expect(o).not.to.have.property('esCorrecta'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Rechazar administración desde estudiante",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/estudiantes",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403',()=>pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Iniciar intento",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idLectura\":{{idLectura}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('idIntento',pm.response.json().idIntento);pm.test('Sin calificación anticipada',()=>pm.expect(pm.response.json().puntaje).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Rechazar otro inicio pendiente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idLectura\":{{idLectura}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+              "pm.test('Recuperable',()=>pm.expect(pm.response.json().idIntentoExistente).to.eql(Number(pm.collectionVariables.get('idIntento'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Consultar historial propio",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos?estado=EN_PROGRESO",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Un intento pendiente',()=>pm.expect(pm.response.json().total).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Recuperar intento",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos/{{idIntento}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('En progreso',()=>pm.expect(pm.response.json().estado).to.eql('EN_PROGRESO'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - Finalizar y calificar",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos/{{idIntento}}/finalizar",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"respuestas\":[{\"idPregunta\":{{idPregunta}},\"idOpcion\":{{idOpcion}}}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('100 puntos y 3 estrellas',()=>{const r=pm.response.json();pm.expect(r.puntaje).to.eql(100);pm.expect(r.estrellas).to.eql(3);pm.expect(r.estado).to.eql('COMPLETADO');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 - Reenviar sin duplicar resultado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos/{{idIntento}}/finalizar",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"respuestas\":[{\"idPregunta\":{{idPregunta}},\"idOpcion\":{{idOpcion}}}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Mismo intento',()=>pm.expect(pm.response.json().idIntento).to.eql(Number(pm.collectionVariables.get('idIntento'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 - Consultar progreso e insignias",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/estudiantes/{{idEstudiante}}/progreso",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Un resultado sin duplicados',()=>{const p=pm.response.json();pm.expect(p.intentosCompletados).to.eql(1);pm.expect(p.puntosAcumulados).to.eql(100);pm.expect(p.estrellasAcumuladas).to.eql(3);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 - Proteger pregunta usada",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/preguntas/{{idPregunta}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409',()=>pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 - Desactivar lectura y conservar historial",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 - Consultar resultado después de desactivar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos/{{idIntento}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "pm.test('Historial conservado',()=>pm.expect(pm.response.json().puntaje).to.eql(100));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

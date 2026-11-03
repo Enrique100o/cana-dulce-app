@@ -1,160 +1,133 @@
 const express = require("express");
 const pool = require("../db");
 const {
-    validarCreacionLectura,
-    validarConsultaLecturas,
-    validarIdentificador,
-    validarCreacionPregunta,
-    validarActualizacionLectura
+  validarCreacionLectura,
+  validarConsultaLecturas,
+  validarIdentificador,
+  validarCreacionPregunta,
+  validarActualizacionLectura,
 } = require("../validaciones");
 const {
-    esLecturaPublicable,
-    obtenerLectura,
-    puedeConsultarLectura,
-    obtenerLecturaParaEdicion,
-    actualizarLectura,
-    desactivarLectura
+  esLecturaPublicable,
+  obtenerLectura,
+  puedeConsultarLectura,
+  obtenerLecturaParaEdicion,
+  actualizarLectura,
+  desactivarLectura,
 } = require("../servicios/lecturas");
-const {
-    autenticar,
-    permitirRol
-} = require("../middleware/autenticacion");
-const {
-    crearPregunta,
-    obtenerPreguntas
-} = require("../servicios/preguntas");
-const {
-    ejecutarTransaccion
-} = require("../transacciones");
+const { autenticar, permitirRol } = require("../middleware/autenticacion");
+const { crearPregunta, obtenerPreguntas } = require("../servicios/preguntas");
+const { ejecutarTransaccion } = require("../transacciones");
 const router = express.Router();
 
-router.post(
-    "/",
-    autenticar,
-    permitirRol("DOCENTE"),
-    async (req, res) => {
-        const validacion = validarCreacionLectura(req.body);
+router.post("/", autenticar, permitirRol("DOCENTE"), async (req, res) => {
+  const validacion = validarCreacionLectura(req.body);
 
-        if (validacion.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: validacion.error
-            });
-        }
+  if (validacion.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: validacion.error,
+    });
+  }
 
-        const {
-            titulo,
-            contenido,
-            grado,
-            dificultad,
-            categoria,
-            estado
-        } = validacion.datos;
+  const { titulo, contenido, grado, dificultad, categoria, estado } =
+    validacion.datos;
 
-        try {
-            const [resultado] = await pool.execute(
-                `INSERT INTO LECTURA (
+  try {
+    const [resultado] = await pool.execute(
+      `INSERT INTO LECTURA (
                     titulo, contenido, grado,
                     dificultad, categoria, estado
                 ) VALUES (?, ?, ?, ?, ?, ?)`,
-                [
-                    titulo,
-                    contenido,
-                    grado,
-                    dificultad,
-                    categoria,
-                    estado
-                ]
-            );
+      [titulo, contenido, grado, dificultad, categoria, estado],
+    );
 
-            res.location(`/api/lecturas/${resultado.insertId}`);
+    res.location(`/api/lecturas/${resultado.insertId}`);
 
-            res.status(201).json({
-                idLectura: resultado.insertId,
-                titulo,
-                contenido,
-                grado,
-                dificultad,
-                categoria,
-                estado,
-                totalPreguntasActivas: 0,
-                bloqueadaParaEdicion: false
-            });
-        } catch (error) {
-            console.error("Error al crear lectura:", error.code);
+    res.status(201).json({
+      idLectura: resultado.insertId,
+      titulo,
+      contenido,
+      grado,
+      dificultad,
+      categoria,
+      estado,
+      totalPreguntasActivas: 0,
+      bloqueadaParaEdicion: false,
+    });
+  } catch (error) {
+    console.error("Error al crear lectura:", error.code);
 
-            res.status(500).json({
-                estado: "error",
-                mensaje: "No se pudo crear la lectura."
-            });
-        }
-    }
-);
+    res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudo crear la lectura.",
+    });
+  }
+});
 router.get("/", autenticar, async (req, res) => {
+  if (
+    req.body !== undefined ||
+    Number(req.get("Content-Length") || 0) > 0 ||
+    req.get("Transfer-Encoding")
+  ) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: "Esta consulta no recibe un cuerpo.",
+    });
+  }
+
+  const validacion = validarConsultaLecturas(req.query);
+
+  if (validacion.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: validacion.error,
+    });
+  }
+
+  const { grado, estado, q } = validacion.datos;
+  const esEstudiante = req.sesion.rol === "ESTUDIANTE";
+  const condiciones = [];
+  const parametros = [];
+
+  if (esEstudiante) {
+    const gradoEstudiante = req.sesion.estudiante.grado;
+
     if (
-        req.body !== undefined ||
-        Number(req.get("Content-Length") || 0) > 0 ||
-        req.get("Transfer-Encoding")
+      (grado !== undefined && grado !== gradoEstudiante) ||
+      estado === "INACTIVA"
     ) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: "Esta consulta no recibe un cuerpo."
-        });
+      return res.status(403).json({
+        estado: "error",
+        mensaje: "No tienes permiso para consultar esas lecturas.",
+      });
     }
 
-    const validacion = validarConsultaLecturas(req.query);
-
-    if (validacion.error) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: validacion.error
-        });
+    condiciones.push("l.grado = ?", "l.estado = 'ACTIVA'");
+    parametros.push(gradoEstudiante);
+  } else {
+    if (grado !== undefined) {
+      condiciones.push("l.grado = ?");
+      parametros.push(grado);
     }
 
-    const { grado, estado, q } = validacion.datos;
-    const esEstudiante = req.sesion.rol === "ESTUDIANTE";
-    const condiciones = [];
-    const parametros = [];
-
-    if (esEstudiante) {
-        const gradoEstudiante = req.sesion.estudiante.grado;
-
-        if (
-            (grado !== undefined && grado !== gradoEstudiante) ||
-            estado === "INACTIVA"
-        ) {
-            return res.status(403).json({
-                estado: "error",
-                mensaje: "No tienes permiso para consultar esas lecturas."
-            });
-        }
-
-        condiciones.push("l.grado = ?", "l.estado = 'ACTIVA'");
-        parametros.push(gradoEstudiante);
-    } else {
-        if (grado !== undefined) {
-            condiciones.push("l.grado = ?");
-            parametros.push(grado);
-        }
-
-        if (estado !== undefined) {
-            condiciones.push("l.estado = ?");
-            parametros.push(estado);
-        }
+    if (estado !== undefined) {
+      condiciones.push("l.estado = ?");
+      parametros.push(estado);
     }
+  }
 
-    if (q !== undefined) {
-        condiciones.push("LOCATE(?, LOWER(l.titulo)) > 0");
-        parametros.push(q);
-    }
+  if (q !== undefined) {
+    condiciones.push("LOCATE(?, LOWER(l.titulo)) > 0");
+    parametros.push(q);
+  }
 
-    const filtroSQL = condiciones.length > 0
-        ? "WHERE " + condiciones.join(" AND ")
-        : "";
+  const filtroSQL =
+    condiciones.length > 0 ? "WHERE " + condiciones.join(" AND ") : "";
 
-    try {
-        const [lecturas] = await pool.execute(
-            `SELECT
+  try {
+    const [lecturas] = await pool.execute(
+      `SELECT
                 l.idLectura,
                 l.titulo,
                 l.grado,
@@ -175,336 +148,302 @@ router.get("/", autenticar, async (req, res) => {
              FROM LECTURA l
              ${filtroSQL}
              ORDER BY LOWER(l.titulo), l.idLectura`,
-            parametros
-        );
-
-        const datos = [];
-
-        for (const lectura of lecturas) {
-            if (
-                esEstudiante &&
-                !(await esLecturaPublicable(lectura.idLectura))
-            ) {
-                continue;
-            }
-
-            datos.push({
-                ...lectura,
-                totalPreguntasActivas: Number(
-                    lectura.totalPreguntasActivas
-                ),
-                bloqueadaParaEdicion: Number(
-                    lectura.bloqueadaParaEdicion
-                ) === 1
-            });
-        }
-
-        res.json({
-            datos,
-            total: datos.length
-        });
-    } catch (error) {
-        console.error("Error al consultar lecturas:", error.code);
-
-        res.status(500).json({
-            estado: "error",
-            mensaje: "No se pudieron consultar las lecturas."
-        });
-    }
-});
-router.get("/:id", autenticar, async (req, res) => {
-    if (
-        req.body !== undefined ||
-        Number(req.get("Content-Length") || 0) > 0 ||
-        req.get("Transfer-Encoding") ||
-        Object.keys(req.query).length > 0
-    ) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: "Esta consulta no recibe filtros ni cuerpo."
-        });
-    }
-
-    const validacion = validarIdentificador(
-        req.params.id,
-        "El identificador de la lectura"
+      parametros,
     );
 
-    if (validacion.error) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: validacion.error
-        });
+    const datos = [];
+
+    for (const lectura of lecturas) {
+      if (esEstudiante && !(await esLecturaPublicable(lectura.idLectura))) {
+        continue;
+      }
+
+      datos.push({
+        ...lectura,
+        totalPreguntasActivas: Number(lectura.totalPreguntasActivas),
+        bloqueadaParaEdicion: Number(lectura.bloqueadaParaEdicion) === 1,
+      });
     }
 
-    try {
-        const lectura = await obtenerLectura(validacion.datos);
+    res.json({
+      datos,
+      total: datos.length,
+    });
+  } catch (error) {
+    console.error("Error al consultar lecturas:", error.code);
 
-        const tieneAcceso = await puedeConsultarLectura(
-            req.sesion,
-            lectura
-        );
+    res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudieron consultar las lecturas.",
+    });
+  }
+});
+router.get("/:id", autenticar, async (req, res) => {
+  if (
+    req.body !== undefined ||
+    Number(req.get("Content-Length") || 0) > 0 ||
+    req.get("Transfer-Encoding") ||
+    Object.keys(req.query).length > 0
+  ) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: "Esta consulta no recibe filtros ni cuerpo.",
+    });
+  }
 
-        if (!tieneAcceso) {
-            return res.status(404).json({
-                estado: "error",
-                mensaje: "No se encontró la lectura."
-            });
-        }
+  const validacion = validarIdentificador(
+    req.params.id,
+    "El identificador de la lectura",
+  );
 
-        return res.json(lectura);
-    } catch (error) {
-        console.error(
-            "Error al consultar lectura:",
-            error.code || error.name
-        );
+  if (validacion.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: validacion.error,
+    });
+  }
 
-        return res.status(500).json({
-            estado: "error",
-            mensaje: "No se pudo consultar la lectura."
-        });
+  try {
+    const lectura = await obtenerLectura(validacion.datos);
+
+    const tieneAcceso = await puedeConsultarLectura(req.sesion, lectura);
+
+    if (!tieneAcceso) {
+      return res.status(404).json({
+        estado: "error",
+        mensaje: "No se encontró la lectura.",
+      });
     }
+
+    return res.json(lectura);
+  } catch (error) {
+    console.error("Error al consultar lectura:", error.code || error.name);
+
+    return res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudo consultar la lectura.",
+    });
+  }
 });
 router.post(
-    "/:id/preguntas",
-    autenticar,
-    permitirRol("DOCENTE"),
-    async (req, res) => {
-        const identificador = validarIdentificador(
-            req.params.id,
-            "El identificador de la lectura"
-        );
-
-        if (identificador.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: identificador.error
-            });
-        }
-
-        const validacion = validarCreacionPregunta(req.body);
-
-        if (validacion.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: validacion.error
-            });
-        }
-
-        try {
-            const pregunta = await crearPregunta(
-                identificador.datos,
-                validacion.datos
-            );
-
-            return res.status(201).json(pregunta);
-        } catch (error) {
-            if ([404, 409].includes(error.estadoHTTP)) {
-                return res.status(error.estadoHTTP).json({
-                    estado: "error",
-                    mensaje: error.message
-                });
-            }
-
-            if (error.code === "ER_DUP_ENTRY") {
-                return res.status(409).json({
-                    estado: "error",
-                    mensaje: "Ya existe una pregunta con ese orden en la lectura."
-                });
-            }
-
-            console.error(
-                "Error al crear la pregunta:",
-                error.code || error.name
-            );
-
-            return res.status(500).json({
-                estado: "error",
-                mensaje: "No se pudo crear la pregunta."
-            });
-        }
-    }
-);
-router.get("/:id/preguntas", autenticar, async (req, res) => {
-    if (
-        req.body !== undefined ||
-        Number(req.get("Content-Length") || 0) > 0 ||
-        req.get("Transfer-Encoding") ||
-        Object.keys(req.query).length > 0
-    ) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: "Esta consulta no recibe filtros ni cuerpo."
-        });
-    }
-
+  "/:id/preguntas",
+  autenticar,
+  permitirRol("DOCENTE"),
+  async (req, res) => {
     const identificador = validarIdentificador(
-        req.params.id,
-        "El identificador de la lectura"
+      req.params.id,
+      "El identificador de la lectura",
     );
 
     if (identificador.error) {
-        return res.status(400).json({
-            estado: "error",
-            mensaje: identificador.error
-        });
+      return res.status(400).json({
+        estado: "error",
+        mensaje: identificador.error,
+      });
+    }
+
+    const validacion = validarCreacionPregunta(req.body);
+
+    if (validacion.error) {
+      return res.status(400).json({
+        estado: "error",
+        mensaje: validacion.error,
+      });
     }
 
     try {
-        const resultado = await ejecutarTransaccion(
-            async conexion => {
-                const lectura = await obtenerLecturaParaEdicion(
-                    identificador.datos,
-                    conexion
-                );
+      const pregunta = await crearPregunta(
+        identificador.datos,
+        validacion.datos,
+      );
 
-                const tieneAcceso = await puedeConsultarLectura(
-                    req.sesion,
-                    lectura,
-                    conexion
-                );
-
-                if (!tieneAcceso) {
-                    return null;
-                }
-
-                const preguntas = await obtenerPreguntas(
-                    lectura.idLectura,
-                    false,
-                    conexion
-                );
-
-                return {
-                    datos: preguntas,
-                    total: preguntas.length
-                };
-            }
-        );
-
-        if (resultado === null) {
-            return res.status(404).json({
-                estado: "error",
-                mensaje: "No se encontró la lectura."
-            });
-        }
-
-        return res.json(resultado);
+      return res.status(201).json(pregunta);
     } catch (error) {
-        console.error(
-            "Error al consultar el cuestionario:",
-            error.code || error.name
-        );
-
-        return res.status(500).json({
-            estado: "error",
-            mensaje: "No se pudieron consultar las preguntas."
+      if ([404, 409].includes(error.estadoHTTP)) {
+        return res.status(error.estadoHTTP).json({
+          estado: "error",
+          mensaje: error.message,
         });
+      }
+
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(409).json({
+          estado: "error",
+          mensaje: "Ya existe una pregunta con ese orden en la lectura.",
+        });
+      }
+
+      console.error("Error al crear la pregunta:", error.code || error.name);
+
+      return res.status(500).json({
+        estado: "error",
+        mensaje: "No se pudo crear la pregunta.",
+      });
     }
+  },
+);
+router.get("/:id/preguntas", autenticar, async (req, res) => {
+  if (
+    req.body !== undefined ||
+    Number(req.get("Content-Length") || 0) > 0 ||
+    req.get("Transfer-Encoding") ||
+    Object.keys(req.query).length > 0
+  ) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: "Esta consulta no recibe filtros ni cuerpo.",
+    });
+  }
+
+  const identificador = validarIdentificador(
+    req.params.id,
+    "El identificador de la lectura",
+  );
+
+  if (identificador.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: identificador.error,
+    });
+  }
+
+  try {
+    const resultado = await ejecutarTransaccion(async (conexion) => {
+      const lectura = await obtenerLecturaParaEdicion(
+        identificador.datos,
+        conexion,
+      );
+
+      const tieneAcceso = await puedeConsultarLectura(
+        req.sesion,
+        lectura,
+        conexion,
+      );
+
+      if (!tieneAcceso) {
+        return null;
+      }
+
+      const preguntas = await obtenerPreguntas(
+        lectura.idLectura,
+        false,
+        conexion,
+      );
+
+      return {
+        datos: preguntas,
+        total: preguntas.length,
+      };
+    });
+
+    if (resultado === null) {
+      return res.status(404).json({
+        estado: "error",
+        mensaje: "No se encontró la lectura.",
+      });
+    }
+
+    return res.json(resultado);
+  } catch (error) {
+    console.error(
+      "Error al consultar el cuestionario:",
+      error.code || error.name,
+    );
+
+    return res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudieron consultar las preguntas.",
+    });
+  }
 });
-router.put(
-    "/:id",
-    autenticar,
-    permitirRol("DOCENTE"),
-    async (req, res) => {
-        const identificador = validarIdentificador(
-            req.params.id,
-            "El identificador de la lectura"
-        );
+router.put("/:id", autenticar, permitirRol("DOCENTE"), async (req, res) => {
+  const identificador = validarIdentificador(
+    req.params.id,
+    "El identificador de la lectura",
+  );
 
-        if (identificador.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: identificador.error
-            });
-        }
+  if (identificador.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: identificador.error,
+    });
+  }
 
-        const validacion = validarActualizacionLectura(req.body);
+  const validacion = validarActualizacionLectura(req.body);
 
-        if (validacion.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: validacion.error
-            });
-        }
+  if (validacion.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: validacion.error,
+    });
+  }
 
-        try {
-            const lectura = await actualizarLectura(
-                identificador.datos,
-                validacion.datos
-            );
+  try {
+    const lectura = await actualizarLectura(
+      identificador.datos,
+      validacion.datos,
+    );
 
-            return res.json(lectura);
-        } catch (error) {
-            if ([404, 409].includes(error.estadoHTTP)) {
-                return res.status(error.estadoHTTP).json({
-                    estado: "error",
-                    mensaje: error.message
-                });
-            }
-
-            console.error(
-                "Error al actualizar lectura:",
-                error.code || error.name
-            );
-
-            return res.status(500).json({
-                estado: "error",
-                mensaje: "No se pudo actualizar la lectura."
-            });
-        }
+    return res.json(lectura);
+  } catch (error) {
+    if ([404, 409].includes(error.estadoHTTP)) {
+      return res.status(error.estadoHTTP).json({
+        estado: "error",
+        mensaje: error.message,
+      });
     }
-);
-router.delete(
-    "/:id",
-    autenticar,
-    permitirRol("DOCENTE"),
-    async (req, res) => {
-        if (
-            req.body !== undefined ||
-            Number(req.get("Content-Length") || 0) > 0 ||
-            req.get("Transfer-Encoding") ||
-            Object.keys(req.query).length > 0
-        ) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: "Esta operación no recibe filtros ni cuerpo."
-            });
-        }
 
-        const identificador = validarIdentificador(
-            req.params.id,
-            "El identificador de la lectura"
-        );
+    console.error("Error al actualizar lectura:", error.code || error.name);
 
-        if (identificador.error) {
-            return res.status(400).json({
-                estado: "error",
-                mensaje: identificador.error
-            });
-        }
+    return res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudo actualizar la lectura.",
+    });
+  }
+});
+router.delete("/:id", autenticar, permitirRol("DOCENTE"), async (req, res) => {
+  if (
+    req.body !== undefined ||
+    Number(req.get("Content-Length") || 0) > 0 ||
+    req.get("Transfer-Encoding") ||
+    Object.keys(req.query).length > 0
+  ) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: "Esta operación no recibe filtros ni cuerpo.",
+    });
+  }
 
-        try {
-            await desactivarLectura(identificador.datos);
+  const identificador = validarIdentificador(
+    req.params.id,
+    "El identificador de la lectura",
+  );
 
-            return res.status(204).end();
-        } catch (error) {
-            if (error.estadoHTTP === 404) {
-                return res.status(404).json({
-                    estado: "error",
-                    mensaje: error.message
-                });
-            }
+  if (identificador.error) {
+    return res.status(400).json({
+      estado: "error",
+      mensaje: identificador.error,
+    });
+  }
 
-            console.error(
-                "Error al desactivar lectura:",
-                error.code || error.name
-            );
+  try {
+    await desactivarLectura(identificador.datos);
 
-            return res.status(500).json({
-                estado: "error",
-                mensaje: "No se pudo desactivar la lectura."
-            });
-        }
+    return res.status(204).end();
+  } catch (error) {
+    if (error.estadoHTTP === 404) {
+      return res.status(404).json({
+        estado: "error",
+        mensaje: error.message,
+      });
     }
-);
+
+    console.error("Error al desactivar lectura:", error.code || error.name);
+
+    return res.status(500).json({
+      estado: "error",
+      mensaje: "No se pudo desactivar la lectura.",
+    });
+  }
+});
 module.exports = router;

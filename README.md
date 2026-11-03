@@ -17,7 +17,9 @@ La dirección `/health` devuelve JSON con el estado del servidor y su conexión 
 - `backend/database/schema.sql`: estructura de las seis tablas.
 - `backend/database/migrar-datos.js`: utilidad utilizada para trasladar los datos locales.
 - `backend/certificados/aiven-ca.pem`: certificado público para verificar MySQL en Aiven.
-- `android`: carpeta reservada para la aplicación Kotlin; todavía no está inicializada.
+- `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
+- `backend/docs/API.md`: contrato de las 19 operaciones de negocio.
+- `backend/postman/CanaDulce.postman_collection.json`: colección ordenada de pruebas HTTP.
 - `render.yaml`: configuración de despliegue del backend.
 
 ## Ejecutar el backend
@@ -80,7 +82,42 @@ creación, consulta, actualización, publicación y desactivación de lecturas; 
 preguntas con opciones y consulta del cuestionario. La consulta estudiantil oculta las
 respuestas correctas.
 
-Quedan pendientes la edición y desactivación de preguntas, los intentos de lectura,
-la entrega y calificación de respuestas, la consulta de progreso y la aplicación Android.
-El primer despliegue corresponde a una versión funcional del backend y no acredita el
-cierre de todas las historias de usuario.
+El backend también incluye edición y desactivación de preguntas, historial e inicio de
+intentos, entrega de respuestas, calificación, estrellas, progreso e insignias. El servidor
+calcula los resultados y protege la edición de actividades que ya tienen intentos.
+
+## Aplicación Android - Sprint 1
+
+Incluye HU-01 a HU-05: registro, inicio y cierre de sesión estudiantil, acceso docente,
+misiones filtradas por grado con búsqueda y lectura con tamaño de texto ajustable.
+La sesión se cifra con Android Keystore y se valida al reabrir la aplicación. Los códigos
+de acceso no se guardan en el teléfono. El área docente permite consultar lecturas y estudiantes.
+
+1. Instala Android Studio con JDK 25 y Android SDK 37. El proyecto usa Gradle 9.6 y AGP 9.4.
+2. Clona el repositorio y abre la carpeta `android` como proyecto en Android Studio.
+3. Deja terminar la sincronización de Gradle y ejecuta `app` en un teléfono o emulador
+   con Android 7.0 (API 24) o posterior y conexión a Internet.
+4. La URL pública ya está configurada en `android/app/build.gradle.kts`. Para utilizar
+   la API publicada no necesitas instalar MySQL ni iniciar Node.js en ese computador.
+
+Desde PowerShell, en `android`, `./gradlew.bat :app:assembleDebug` genera el APK en
+`app/build/outputs/apk/debug/app-debug.apk`. Es una compilación de desarrollo para la
+sustentación; cada computador puede generar una firma de depuración distinta.
+
+Los cuestionarios, resultados, insignias y administración mediante pantallas Android
+corresponden al Sprint 2. Sus operaciones del backend ya están implementadas.
+
+## Verificación
+
+La validación del backend cubre registros, roles, filtros, CRUD, intentos concurrentes,
+calificación, idempotencia y conservación del historial. La colección de Postman incluye
+comprobaciones de estado HTTP, permisos, estructura y resultados. Introduce las claves
+en variables locales de Postman; la colección publicada no contiene credenciales reales.
+
+En Android, `FlujosSprintUnoTest` comprueba registro, duplicados, accesos inválidos y
+válidos, búsqueda, lectura, conservación de tamaño, recuperación de sesión y cierre.
+Recibe credenciales mediante argumentos del ejecutor de pruebas; no están en el código.
+
+El servicio actual de Render usa despliegue manual: después de publicar un commit se
+selecciona **Manual Deploy > Deploy latest commit** en el panel. Un `git push` por sí solo
+no cambia la versión activa.

@@ -33,7 +33,7 @@ if (valorTLS === "true") {
   const rutaCertificado = path.resolve(
     __dirname,
     "..",
-    process.env.DB_SSL_CA_PATH
+    process.env.DB_SSL_CA_PATH,
   );
 
   configuracion.ssl = {
