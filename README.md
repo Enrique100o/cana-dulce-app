@@ -8,6 +8,7 @@ reconstruye el proyecto por historias de usuario y separa la aplicación Android
 - API: https://cana-dulce-api.onrender.com
 - Comprobación de conexión: https://cana-dulce-api.onrender.com/health
 - Repositorio: https://github.com/Enrique100o/cana-dulce-app
+- Entrega del Sprint 1 (APK, informe y pruebas): https://github.com/Enrique100o/cana-dulce-app/releases/tag/sprint-1
 
 La dirección `/health` devuelve JSON con el estado del servidor y su conexión a MySQL.
 
@@ -113,6 +114,8 @@ mediante pantallas Android y la gamificación ampliada corresponden al Sprint 2 
 comprobarse frente a sus propios criterios. Todas sus operaciones del backend están implementadas.
 
 ## Verificación
+
+Resultados y procedimiento de comprobación: [backend/docs/VALIDACION.md](backend/docs/VALIDACION.md).
 
 La validación del backend cubre registros, roles, filtros, CRUD, intentos concurrentes,
 calificación, idempotencia y conservación del historial. La colección de Postman incluye
