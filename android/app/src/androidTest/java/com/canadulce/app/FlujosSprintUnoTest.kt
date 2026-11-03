@@ -1,6 +1,7 @@
 package com.canadulce.app
 
 import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
@@ -69,6 +70,35 @@ class FlujosSprintUnoTest {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
             bitmap.recycle()
+        }
+    }
+
+    private fun ejecutarShell(comando: String): String {
+        val descriptor =
+            InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(comando)
+        return ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use {
+            it.readText().trim()
+        }
+    }
+
+    @Test
+    fun mensajeCuandoNoHayInternet() {
+        val wifi = ejecutarShell("settings get global wifi_on") == "1"
+        val datos = ejecutarShell("settings get global mobile_data") == "1"
+        try {
+            ejecutarShell("svc wifi disable")
+            ejecutarShell("svc data disable")
+            esperar("Entrar como estudiante")
+            pulsar("Entrar como estudiante")
+            escribir("Tu alias", "ModoSinRed")
+            escribir("Código de acceso", "CodigoRed123")
+            pulsar("Entrar")
+            esperar("No pudimos conectarnos. Revisa tu Internet y vuelve a intentarlo.")
+            captura("11_Error_conexion")
+            interfaz.onNodeWithText("Mi aventura").assertDoesNotExist()
+        } finally {
+            ejecutarShell("svc wifi " + if (wifi) "enable" else "disable")
+            ejecutarShell("svc data " + if (datos) "enable" else "disable")
         }
     }
 
