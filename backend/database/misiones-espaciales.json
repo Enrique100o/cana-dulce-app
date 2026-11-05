@@ -1,0 +1,452 @@
+[
+  {
+    "titulo": "La luz del planeta Menta",
+    "grado": 3,
+    "dificultad": "BAJA",
+    "contenido": "Cuando Astro y Lina llegaron al planeta Menta, la lámpara del refugio estaba apagada. Lina quiso enchufar una batería nueva, pero Astro vio que el cable estaba suelto. Antes de tocar nada, apagaron el interruptor.\n\nLina sujetó la linterna mientras Astro ajustó el cable. Después encendieron el interruptor y la lámpara iluminó todo el refugio. La batería de repuesto seguía dentro de su caja.\n\nAntes de dormir, Lina escribió en la bitácora: «Mirar con calma nos ayudó a encontrar el problema». Astro dibujó una pequeña lámpara junto a la nota.",
+    "preguntas": [
+      {
+        "tipo": "LITERAL",
+        "enunciado": "¿Qué vio Astro al revisar la lámpara?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "La batería estaba rota.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "El cable estaba suelto.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "La lámpara estaba cubierta.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "SECUENCIA",
+        "enunciado": "¿Qué hicieron antes de ajustar el cable?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "Guardaron la linterna.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Escribieron en la bitácora.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Apagaron el interruptor.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      },
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Por qué no usaron la batería de repuesto?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "La lámpara volvió a funcionar al ajustar el cable.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "La batería no cabía en el refugio.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "La linterna era suficiente para siempre.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  },
+  {
+    "titulo": "El mapa de los tres cráteres",
+    "grado": 3,
+    "dificultad": "MEDIA",
+    "contenido": "Nico y Astro debían dejar una caja de semillas en el refugio lunar. En el mapa había tres cráteres. El primero tenía forma de luna creciente. El segundo tenía dos piedras juntas. El tercero tenía una bandera azul.\n\nUna nube de polvo cubrió la bandera. Nico pensó que se habían perdido. Astro le pidió que mirara las marcas del suelo. Vieron las dos piedras y supieron que estaban junto al segundo cráter. Desde allí caminaron hacia el tercero, como indicaba el mapa.\n\nCuando el polvo bajó, la bandera apareció. Nico entregó la caja y marcó las dos piedras en su dibujo para recordarlas.",
+    "preguntas": [
+      {
+        "tipo": "LITERAL",
+        "enunciado": "¿Qué señal encontraron junto al segundo cráter?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "Una bandera azul.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Una caja de semillas.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Dos piedras juntas.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      },
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Para qué sirvieron las dos piedras cuando había polvo?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "Para saber en qué parte del camino estaban.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Para sujetar la bandera azul.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Para cerrar la caja de semillas.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "IDEA_PRINCIPAL",
+        "enunciado": "¿Cuál es la idea principal de la historia?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "Las semillas crecen entre piedras.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Observar las señales ayuda a encontrar el camino.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Una nube cambia la forma de los cráteres.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  },
+  {
+    "titulo": "El huerto de la Luna",
+    "grado": 3,
+    "dificultad": "MEDIA",
+    "contenido": "Vera quería cultivar lechugas en la base lunar. Preparó dos macetas con la misma tierra y puso una semilla en cada una. Dejó ambas bajo la lámpara. A la primera le dio un poco de agua cada mañana. A la segunda no le dio agua.\n\nDespués de varios días, en la primera maceta apareció un brote verde. En la segunda, la tierra seguía seca y no había brote. Vera anotó lo que había hecho y guardó una foto en la bitácora.\n\nAstro le preguntó qué probaría después. Vera decidió regar la segunda maceta para observar si su semilla todavía podía crecer.",
+    "preguntas": [
+      {
+        "tipo": "LITERAL",
+        "enunciado": "¿Qué hizo Vera de manera distinta con las dos macetas?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "Usó una lámpara distinta para cada una.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Regó una maceta y dejó seca la otra.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Puso tierra solo en la primera.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "VOCABULARIO",
+        "enunciado": "En el texto, ¿qué es un «brote»?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "La parte nueva de la planta que empieza a crecer.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Una marca que queda en la lámpara.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "La foto que guardó Vera.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Por qué anotó Vera lo que hizo con cada maceta?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "Para recordar el color de la lámpara.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Para cambiar las semillas de lugar.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Para comparar los resultados con lo que hizo.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  },
+  {
+    "titulo": "El mensaje de la sonda Luma",
+    "grado": 4,
+    "dificultad": "MEDIA",
+    "contenido": "La tripulación esperaba un mensaje de Luma, una sonda que medía la temperatura de un cometa. Al abrir la pantalla, Mara vio una hilera de números y una advertencia: la última medición no había llegado completa.\n\nEl piloto quiso enviar el informe de inmediato porque el equipo de la Tierra llevaba horas esperando. Mara comparó la hora de la medición con la de los mensajes anteriores. Notó que el corte ocurrió justo cuando Luma pasó detrás del cometa. Propuso esperar a que la sonda saliera de la sombra y pedirle que repitiera el envío.\n\nVeinte minutos después recibieron la medición completa. El nuevo número era diferente del que el piloto había supuesto. En el informe, Mara explicó la interrupción y registró el dato recibido. En la Tierra agradecieron que hubiera indicado cómo obtuvo el resultado.",
+    "preguntas": [
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Por qué Mara propuso esperar para pedir otra vez el mensaje?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "Quería que el equipo de la Tierra dejara de preguntar.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Necesitaba apagar la pantalla de la nave.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "El corte coincidía con el paso de la sonda detrás del cometa.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      },
+      {
+        "tipo": "SECUENCIA",
+        "enunciado": "¿Qué ocurrió justo antes de que Mara escribiera el informe?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "La tripulación recibió la medición completa.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "La sonda inició su primera medición.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "El piloto envió un dato supuesto.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "IDEA_PRINCIPAL",
+        "enunciado": "¿Qué decisión permitió entregar un informe confiable?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "Repetir el número de un informe anterior.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Esperar el dato completo y explicar cómo se obtuvo.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Enviar la primera cifra para ahorrar tiempo.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  },
+  {
+    "titulo": "La biblioteca del planeta Nimbo",
+    "grado": 4,
+    "dificultad": "MEDIA",
+    "contenido": "En Nimbo, los cuentos de la biblioteca se proyectaban sobre nubes. Cada familia podía leer en su lengua. Un día, la máquina mezcló las etiquetas y los visitantes comenzaron a llevarse historias distintas de las que habían elegido.\n\nAstro propuso ordenar las etiquetas por color, pero Inés comprobó que varios cuentos de lenguas diferentes tenían el mismo color. Ella escuchó el comienzo de cada historia y anotó sus primeras palabras. Después pidió a las familias que identificaran las lenguas que conocían. Juntos prepararon etiquetas con el nombre de la lengua y un dibujo del cuento.\n\nAl día siguiente, un visitante encontró la historia de un pez siguiendo el dibujo y eligió leerla en su lengua gracias al nombre de la etiqueta. Inés decidió conservar las dos pistas. Cada una respondía una pregunta diferente: qué historia era y en qué lengua podía leerla.",
+    "preguntas": [
+      {
+        "tipo": "LITERAL",
+        "enunciado": "¿Qué problema tenían las etiquetas de un solo color?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "Un mismo color aparecía en cuentos de lenguas distintas.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Los dibujos solo se veían cuando llovía.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Las familias no podían escuchar las historias.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Por qué Inés mantuvo el dibujo y el nombre de la lengua?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "Necesitaba decorar todas las nubes.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Quería que cada cuento tuviera dos colores.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Cada pista ayudaba a encontrar un dato distinto.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      },
+      {
+        "tipo": "IDEA_PRINCIPAL",
+        "enunciado": "¿Qué permitió resolver el problema de la biblioteca?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "Proyectar los cuentos más arriba.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Observar qué faltaba y pedir ayuda a las familias.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Guardar todas las historias en una sola lengua.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  },
+  {
+    "titulo": "La órbita de la segunda oportunidad",
+    "grado": 4,
+    "dificultad": "ALTA",
+    "contenido": "El equipo debía llevar medicinas a una estación que giraba alrededor de un planeta. Julián practicó la maniobra en el simulador. La primera vez aceleró apenas vio la estación y terminó demasiado lejos para acercarse. En la pantalla apareció un aviso sobre la diferencia de velocidad.\n\nEn lugar de repetir la maniobra sin cambiar nada, Julián revisó su registro junto a Astro. Descubrió que había mirado solo la distancia. También necesitaba saber qué tan rápido se alejaba la estación. En el segundo ensayo observó las dos medidas y ajustó el motor en pasos pequeños.\n\nLa nave simulada quedó junto a la estación. Julián explicó su cambio de estrategia antes de comenzar el viaje real. La tripulación repitió la prueba con otra distancia inicial para comprobar que la estrategia también funcionaba en una situación diferente. Solo entonces cargaron las medicinas.",
+    "preguntas": [
+      {
+        "tipo": "VOCABULARIO",
+        "enunciado": "¿Para qué usó Julián un «simulador»?",
+        "orden": 1,
+        "opciones": [
+          {
+            "texto": "Para enviar las medicinas sin usar una nave.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Para practicar la maniobra antes del viaje real.",
+            "orden": 2,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Para medir la temperatura de las medicinas.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      },
+      {
+        "tipo": "INFERENCIAL",
+        "enunciado": "¿Qué aprendió Julián al revisar su primer ensayo?",
+        "orden": 2,
+        "opciones": [
+          {
+            "texto": "Que la estación siempre quedaba en el mismo lugar.",
+            "orden": 1,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Que debía acelerar al máximo en cada ensayo.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Que mirar solo la distancia no era suficiente.",
+            "orden": 3,
+            "esCorrecta": true
+          }
+        ]
+      },
+      {
+        "tipo": "SECUENCIA",
+        "enunciado": "¿Qué hicieron después de lograr el segundo ensayo y antes de cargar las medicinas?",
+        "orden": 3,
+        "opciones": [
+          {
+            "texto": "Explicaron la estrategia y la probaron con otra distancia.",
+            "orden": 1,
+            "esCorrecta": true
+          },
+          {
+            "texto": "Aceleraron de nuevo sin mirar las medidas.",
+            "orden": 2,
+            "esCorrecta": false
+          },
+          {
+            "texto": "Comenzaron el viaje real inmediatamente.",
+            "orden": 3,
+            "esCorrecta": false
+          }
+        ]
+      }
+    ],
+    "categoria": "Aventuras espaciales"
+  }
+]

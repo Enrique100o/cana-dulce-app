@@ -2,7 +2,7 @@ package com.canadulce.app.datos
 
 import org.json.JSONObject
 
-data class Perfil(val idEstudiante: Int, val alias: String, val grado: Int) {
+data class Perfil(val idEstudiante: Int, val alias: String, val grado: Int, val estado: String = "ACTIVO") {
     fun aJson() =
         JSONObject().put("idEstudiante", idEstudiante).put("alias", alias).put("grado", grado)
 
@@ -12,10 +12,10 @@ data class Perfil(val idEstudiante: Int, val alias: String, val grado: Int) {
                 json.getInt("idEstudiante"),
                 json.getString("alias"),
                 json.getInt("grado"),
+                json.optString("estado", "ACTIVO"),
             )
     }
 }
-
 data class Sesion(val token: String, val rol: String, val estudiante: Perfil?) {
     fun aJson() =
         JSONObject()
@@ -42,6 +42,7 @@ data class Lectura(
     val estado: String,
     val contenido: String = "",
     val totalPreguntas: Int = 0,
+    val bloqueada: Boolean = false,
 ) {
     companion object {
         fun desdeJson(json: JSONObject) =
@@ -50,10 +51,11 @@ data class Lectura(
                 json.getString("titulo"),
                 json.getInt("grado"),
                 json.getString("dificultad"),
-                if (json.isNull("categoria")) "Historias" else json.getString("categoria"),
+                if (json.isNull("categoria")) "" else json.getString("categoria"),
                 json.getString("estado"),
                 json.optString("contenido", ""),
                 json.optInt("totalPreguntasActivas", 0),
+                json.optBoolean("bloqueadaParaEdicion"),
             )
     }
 }
@@ -67,7 +69,11 @@ enum class Pantalla {
     LECTURA,
     CUESTIONARIO,
     RESULTADO,
+    PROGRESO,
     PANEL_DOCENTE,
+    GESTION_LECTURA,
+    EDITOR_LECTURA,
+    EDITOR_PREGUNTA,
     RECUPERAR,
 }
 
@@ -88,11 +94,26 @@ data class EstadoApp(
     val idIntento: Int? = null,
     val resultado: Resultado? = null,
     val regresarAlCuestionario: Boolean = false,
+    val movimiento: Boolean = true,
+    val pasoPregunta: Int = 0,
+    val pendientes: List<Intento> = emptyList(),
+    val progreso: Progreso? = null,
+    val historial: List<Intento> = emptyList(),
+    val regresoResultado: Pantalla = Pantalla.MISIONES,
+    val premiosNuevos: List<Insignia> = emptyList(),
+    val gestion: GestionDocente = GestionDocente(),
 )
 
-data class Opcion(val id: Int, val texto: String)
+data class Opcion(val id: Int, val texto: String, val correcta: Boolean = false)
 
-data class Pregunta(val id: Int, val enunciado: String, val opciones: List<Opcion>) {
+data class Pregunta(
+    val id: Int,
+    val enunciado: String,
+    val opciones: List<Opcion>,
+    val tipo: String,
+    val orden: Int,
+    val estado: String,
+) {
     companion object {
         fun desdeJson(json: JSONObject): Pregunta {
             val opciones = json.getJSONArray("opciones")
@@ -101,11 +122,16 @@ data class Pregunta(val id: Int, val enunciado: String, val opciones: List<Opcio
                 json.getString("enunciado"),
                 List(opciones.length()) {
                     val opcion = opciones.getJSONObject(it)
-                    Opcion(opcion.getInt("idOpcion"), opcion.getString("texto"))
+                    Opcion(
+                        opcion.getInt("idOpcion"),
+                        opcion.getString("texto"),
+                        opcion.optBoolean("esCorrecta"),
+                    )
                 },
+                json.getString("tipo"),
+                json.getInt("orden"),
+                json.optString("estado", "ACTIVA"),
             )
         }
     }
 }
-
-data class Resultado(val puntaje: Double, val estrellas: Int, val correctas: Int, val total: Int)

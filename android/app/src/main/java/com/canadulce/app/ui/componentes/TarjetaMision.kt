@@ -5,22 +5,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.Lectura
 
 @Composable
-fun TarjetaMision(lectura: Lectura, onAbrir: () -> Unit, cargando: Boolean) {
+fun TarjetaMision(lectura: Lectura, onAbrir: () -> Unit, cargando: Boolean, espacial: Boolean = false) {
     Card(onClick = onAbrir, enabled = !cargando, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    lectura.categoria,
+                    lectura.categoria.ifBlank { "Historias" },
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge,
                 )
@@ -29,11 +31,15 @@ fun TarjetaMision(lectura: Lectura, onAbrir: () -> Unit, cargando: Boolean) {
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
-            Text(
-                lectura.titulo,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (espacial) PlanetaMision(lectura.id, Modifier.size(60.dp).padding(end = 6.dp))
+                Text(
+                    lectura.titulo,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Text(
                 when (lectura.dificultad) {
                     "BAJA" -> "Una aventura para comenzar"
@@ -51,7 +57,7 @@ fun TarjetaMision(lectura: Lectura, onAbrir: () -> Unit, cargando: Boolean) {
                 style = MaterialTheme.typography.labelLarge,
             )
             Text(
-                "Abrir historia →",
+                if (espacial) "Explorar planeta →" else "Gestionar lectura →",
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,
             )

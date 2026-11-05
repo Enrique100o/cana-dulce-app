@@ -24,15 +24,21 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                 Pantalla.LECTURA,
                 Pantalla.CUESTIONARIO,
                 Pantalla.RESULTADO,
+                Pantalla.PROGRESO,
+                Pantalla.GESTION_LECTURA,
+                Pantalla.EDITOR_LECTURA,
+                Pantalla.EDITOR_PREGUNTA,
             ),
     ) {
-        modelo.volver()
+        if (!estado.cargando) modelo.volver()
     }
     Scaffold { espacioSistema ->
         Box(Modifier.fillMaxSize().padding(espacioSistema).consumeWindowInsets(espacioSistema)) {
             when (estado.pantalla) {
                 Pantalla.INICIO ->
                     PantallaInicio(
+                        estado.movimiento,
+                        modelo::alternarMovimiento,
                         { modelo.ir(Pantalla.ESTUDIANTE) },
                         { modelo.ir(Pantalla.REGISTRO) },
                         { modelo.ir(Pantalla.DOCENTE) },
@@ -63,18 +69,22 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                         estado,
                         modelo::buscar,
                         modelo::abrirLectura,
+                        modelo::retomarIntento,
+                        { modelo.abrirProgreso() },
+                        modelo::alternarMovimiento,
                         modelo::refrescar,
                         modelo::cerrarSesion,
                         modelo::quitarMensaje,
                     )
                 Pantalla.PANEL_DOCENTE ->
-                    PantallaDocente(
-                        estado,
-                        modelo::buscar,
-                        modelo::abrirLectura,
-                        modelo::refrescar,
-                        modelo::cerrarSesion,
-                        modelo::quitarMensaje,
+                    PantallaDocente(estado, modelo)
+                Pantalla.GESTION_LECTURA -> PantallaGestionLectura(estado, modelo)
+                Pantalla.EDITOR_LECTURA -> PantallaEditarLectura(estado, modelo)
+                Pantalla.EDITOR_PREGUNTA -> PantallaEditarPregunta(estado, modelo)
+                Pantalla.PROGRESO ->
+                    PantallaProgreso(
+                        estado, modelo::volver, modelo::refrescarProgreso,
+                        modelo::verResultado, modelo::quitarMensaje,
                     )
                 Pantalla.LECTURA ->
                     PantallaLectura(
@@ -90,10 +100,12 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                         modelo::volver,
                         modelo::releer,
                         modelo::elegirRespuesta,
+                        modelo::irAPregunta,
                         modelo::finalizarMision,
                         modelo::quitarMensaje,
                     )
-                Pantalla.RESULTADO -> PantallaResultado(estado, modelo::volver)
+                Pantalla.RESULTADO ->
+                    PantallaResultado(estado, modelo::volver) { modelo.abrirProgreso() }
                 Pantalla.RECUPERAR ->
                     Column(
                         Modifier.fillMaxSize().padding(24.dp),

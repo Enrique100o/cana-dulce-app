@@ -13,14 +13,20 @@ android {
         applicationId = "com.canadulce.app"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
         buildConfigField("String", "API_URL", "\"https://cana-dulce-api.onrender.com/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            providers.gradleProperty("apiLocal").orNull?.let { url ->
+                require(Regex("http://10\\.0\\.2\\.2:[0-9]{1,5}/").matches(url))
+                buildConfigField("String", "API_URL", "\"$url\"")
+            }
+        }
         release {
             optimization {
                 enable = true

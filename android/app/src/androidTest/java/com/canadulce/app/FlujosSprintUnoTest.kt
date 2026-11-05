@@ -38,10 +38,16 @@ class FlujosSprintUnoTest {
 
     private fun esperar(texto: String, parcial: Boolean = false) {
         interfaz.waitUntil(120_000) {
-            interfaz
+            val visible = interfaz
                 .onAllNodesWithText(texto, substring = parcial)
                 .fetchSemanticsNodes(atLeastOneRootRequired = false)
                 .isNotEmpty()
+            if (visible) true
+            else runCatching {
+                interfaz.onNode(hasScrollToIndexAction())
+                    .performScrollToNode(hasText(texto, substring = parcial))
+                true
+            }.getOrDefault(false)
         }
     }
 

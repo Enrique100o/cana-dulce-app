@@ -37,7 +37,7 @@ fun PantallaLectura(
             )
         }
         Text(
-            lectura.categoria + " · " + lectura.grado + ".º grado",
+            lectura.categoria.ifBlank { "Historias" } + " · " + lectura.grado + ".º grado",
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.labelLarge,
         )

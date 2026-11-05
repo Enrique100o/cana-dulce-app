@@ -2,8 +2,8 @@ package com.canadulce.app.datos
 
 import com.canadulce.app.BuildConfig
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -20,7 +20,7 @@ class ApiCanaDulce {
         withContext(Dispatchers.IO) {
             val conexion =
                 URL(BuildConfig.API_URL + ruta.removePrefix("/")).openConnection()
-                    as HttpsURLConnection
+                    as HttpURLConnection
             try {
                 conexion.requestMethod = metodo
                 conexion.connectTimeout = 20_000
@@ -35,6 +35,7 @@ class ApiCanaDulce {
                     }
                 }
                 val estado = conexion.responseCode
+                if (estado == HttpURLConnection.HTTP_NO_CONTENT) return@withContext JSONObject()
                 val entrada = if (estado in 200..299) conexion.inputStream else conexion.errorStream
                 val texto = entrada?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
                 val json =
