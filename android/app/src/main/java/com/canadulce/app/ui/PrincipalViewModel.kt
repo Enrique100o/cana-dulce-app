@@ -155,15 +155,7 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
 
     private suspend fun guardarIngreso(json: JSONObject) {
         val sesion = Sesion.desdeJson(json)
-        almacen.guardar(sesion)
-        estado =
-            estado.copy(
-                sesion = sesion,
-                busqueda = "",
-                lectura = null,
-                pantalla =
-                    if (sesion.rol == "DOCENTE") Pantalla.PANEL_DOCENTE else Pantalla.MISIONES,
-            )
+        iniciarNavegacion(sesion)
         cargarDatos("", incluirProgreso = true)
     }
 
@@ -175,14 +167,33 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
                 rol = json.getString("rol"),
                 estudiante = json.optJSONObject("estudiante")?.let(Perfil::desdeJson),
             )
-        almacen.guardar(actual)
-        estado =
-            estado.copy(
-                sesion = actual,
-                pantalla =
-                    if (actual.rol == "DOCENTE") Pantalla.PANEL_DOCENTE else Pantalla.MISIONES,
-            )
+        iniciarNavegacion(actual)
         cargarDatos(estado.busqueda, incluirProgreso = true)
+    }
+
+    private fun iniciarNavegacion(sesion: Sesion) {
+        almacen.guardar(sesion)
+        val companero = sesion.estudiante?.let { perfil ->
+            val guardado = preferencias.getString("companero/${perfil.idEstudiante}", null)
+            Companero.entries.firstOrNull { it.name == guardado }
+        }
+        estado = estado.copy(
+            sesion = sesion,
+            busqueda = "",
+            lectura = null,
+            companero = companero,
+            pantalla = when {
+                sesion.rol == "DOCENTE" -> Pantalla.PANEL_DOCENTE
+                companero == null -> Pantalla.COMPANERO
+                else -> Pantalla.MISIONES
+            },
+        )
+    }
+
+    fun elegirCompanero(companero: Companero) {
+        val estudiante = estado.sesion?.estudiante ?: return
+        preferencias.edit { putString("companero/${estudiante.idEstudiante}", companero.name) }
+        estado = estado.copy(companero = companero, pantalla = Pantalla.MISIONES)
     }
 
     private suspend fun cargarDatos(busqueda: String, incluirProgreso: Boolean = false) {
@@ -578,6 +589,14 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
     }
 
     fun volver() {
+        if (estado.pantalla == Pantalla.COMPANERO) {
+            if (estado.companero == null) cerrarSesion() else ir(Pantalla.MISIONES)
+            return
+        }
+        if (estado.pantalla == Pantalla.ENTRENAMIENTO) {
+            ir(Pantalla.MISIONES)
+            return
+        }
         if (estado.pantalla == Pantalla.RESULTADO) {
             val regreso = estado.regresoResultado
             ir(regreso)

@@ -9,6 +9,8 @@ Android en Kotlin, una API en Node.js y una base de datos MySQL.
 - Comprobación de conexión: https://cana-dulce-api.onrender.com/health
 - Repositorio: https://github.com/Enrique100o/cana-dulce-app
 - Entrega del Sprint 1 (APK, informe y pruebas): https://github.com/Enrique100o/cana-dulce-app/releases/tag/sprint-1
+- Entrega final 1.2 (APK, manuales y evidencias): https://github.com/Enrique100o/cana-dulce-app/releases/tag/v1.2.0
+- Tablero de historias de usuario: https://trello.com/b/TsyyJWpL/cana-dulce
 
 La dirección `/health` devuelve JSON con el estado del servidor y su conexión a MySQL.
 
@@ -87,15 +89,19 @@ El backend también incluye edición y desactivación de preguntas, historial e 
 intentos, entrega de respuestas, calificación, estrellas, progreso e insignias. El servidor
 calcula los resultados y protege la edición de actividades que ya tienen intentos.
 
-## Aplicación Android - Sprint 1
+## Aplicación Android - Entrega 1.2
 
-Incluye HU-01 a HU-05: registro, inicio y cierre de sesión estudiantil, acceso docente,
-misiones filtradas por grado con búsqueda y lectura con tamaño de texto ajustable.
-Cada misión muestra dificultad y cantidad de preguntas. Desde la lectura se abre el
-cuestionario; se puede releer y volver conservando las selecciones durante la actividad,
-incluso al girar la pantalla. La entrega muestra el puntaje y las estrellas devueltos por la API.
-La sesión se cifra con Android Keystore y se valida al reabrir la aplicación. Los códigos
-de acceso no se guardan en el teléfono. El área docente permite consultar lecturas y estudiantes.
+- Estudiantes: registro, acceso, búsqueda de misiones por grado, lectura ajustable,
+  cuestionario reanudable, resultados, insignias y bitácora.
+- Órbita Lectora: selección de Astro o Lina, entrenamiento con pistas y reacciones,
+  celebraciones y despegue lunar para una misión perfecta. Los puntos de las misiones
+  se calculan en el servidor. La práctica tiene su propio texto y tres retos locales.
+- Docentes: gestión de lecturas, preguntas y opciones, publicación, desactivación
+  y consulta de progreso. La API protege el historial y aplica permisos por rol.
+
+El personaje, el movimiento y el borrador del intento se guardan en el dispositivo.
+Los resultados enviados y las insignias se recuperan de la API. La sesión cifrada
+se valida al reabrir la aplicación.
 
 1. Instala Android Studio con JDK 25 y Android SDK 37. El proyecto usa Gradle 9.6 y AGP 9.4.
 2. Clona el repositorio y abre la carpeta `android` como proyecto en Android Studio.
@@ -104,14 +110,10 @@ de acceso no se guardan en el teléfono. El área docente permite consultar lect
 4. La URL pública ya está configurada en `android/app/build.gradle.kts`. Para utilizar
    la API publicada no necesitas instalar MySQL ni iniciar Node.js en ese computador.
 
-Desde PowerShell, en `android`, `./gradlew.bat :app:assembleDebug` genera el APK en
-`app/build/outputs/apk/debug/app-debug.apk`. Es una compilación de desarrollo para la
-sustentación; cada computador puede generar una firma de depuración distinta.
-
-El flujo básico de cuestionario y resultado habilita el recorrido exigido por HU-05.
-El cierre independiente de HU-06 y HU-07, el progreso e insignias, la administración completa
-mediante pantallas Android y la gamificación ampliada corresponden al Sprint 2 y deben
-comprobarse frente a sus propios criterios. Todas sus operaciones del backend están implementadas.
+Desde PowerShell, en `android`, `./gradlew.bat :app:assembleDebug` genera un APK
+de desarrollo. `./gradlew.bat :app:assembleRelease` genera el APK de distribución
+sin firmar. La publicación incluye el APK 1.2 firmado con su clave de distribución.
+Android exige conservar esa firma para actualizar la instalación.
 
 ## Verificación
 

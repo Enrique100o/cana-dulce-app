@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -17,6 +18,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.EstadoApp
+import com.canadulce.app.datos.Companero
 import com.canadulce.app.datos.Pantalla
 import com.canadulce.app.datos.puntos
 import com.canadulce.app.ui.componentes.*
@@ -26,6 +28,10 @@ import kotlin.math.sin
 @Composable
 fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () -> Unit) {
     val resultado = estado.resultado ?: return
+    val companero = estado.companero ?: Companero.ASTRO
+    val esEstudiante = estado.sesion?.rol == "ESTUDIANTE"
+    var respuestaAbierta by rememberSaveable { mutableIntStateOf(-1) }
+    val perfecto = resultado.total > 0 && resultado.correctas == resultado.total
     val animar = permiteMovimiento(estado.movimiento) && estado.regresoResultado == Pantalla.MISIONES
     val celebracion = remember(resultado, animar) { Animatable(if (animar) 0f else 1f) }
     LaunchedEffect(celebracion) {
@@ -41,8 +47,10 @@ fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () ->
                 "REGRESO A LA BASE",
                 "¡Misión completada!",
                 if (resultado.estrellas >= 2) "¡Tu lectura iluminó la galaxia!"
-                else "Astro celebra tu esfuerzo. Cada misión te ayuda a mejorar.",
+                else "${companero.nombre} celebra tu esfuerzo. Cada misión te ayuda a mejorar.",
                 estado.movimiento,
+                companero = companero,
+                gesto = if (perfecto) GestoOrbital.CELEBRAR else GestoOrbital.ANIMAR,
             )
         }
         item {
@@ -100,6 +108,9 @@ fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () ->
                 }
             }
         }
+        if (perfecto && esEstudiante) {
+            item { DespegueLunar(companero, estado.movimiento, estado.regresoResultado == Pantalla.MISIONES) }
+        }
         if (estado.premiosNuevos.isNotEmpty()) {
             item {
                 Card(
@@ -132,6 +143,24 @@ fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () ->
                     )
                     Text("${indice + 1}. ${respuesta.enunciado}", fontWeight = FontWeight.SemiBold)
                     Text("Tu respuesta: ${respuesta.elegida}")
+                    if (esEstudiante) {
+                        TextButton(onClick = {
+                            respuestaAbierta = if (respuestaAbierta == indice) -1 else indice
+                        }) {
+                            Text(if (respuestaAbierta == indice) "Cerrar reacción" else "Ver reacción de ${companero.nombre}")
+                        }
+                        if (respuestaAbierta == indice) {
+                            HeroeOrbital(
+                                if (respuesta.correcta) "ESTRELLA DE LECTURA" else "UNA PISTA MÁS",
+                                if (respuesta.correcta) "¡Bien hecho!" else "Volvamos a la historia",
+                                if (respuesta.correcta) "Encontraste la respuesta en el texto."
+                                else "Busca el pasaje de la pregunta y compara las opciones en tu próximo intento.",
+                                estado.movimiento,
+                                companero = companero,
+                                gesto = if (respuesta.correcta) GestoOrbital.CELEBRAR else GestoOrbital.ANIMAR,
+                            )
+                        }
+                    }
                 }
             }
         }

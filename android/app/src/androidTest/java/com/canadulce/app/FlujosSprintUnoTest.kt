@@ -52,6 +52,7 @@ class FlujosSprintUnoTest {
     }
 
     private fun pulsar(texto: String) {
+        esperar(texto)
         val nodo = interfaz.onNodeWithText(texto)
         try {
             nodo.performScrollTo()
@@ -60,6 +61,7 @@ class FlujosSprintUnoTest {
     }
 
     private fun escribir(campo: String, valor: String) {
+        esperar(campo)
         val nodo = interfaz.onNodeWithText(campo)
         try {
             nodo.performScrollTo()
@@ -126,6 +128,8 @@ class FlujosSprintUnoTest {
         pulsar("Tercero")
         escribir("Código de acceso", claveNueva)
         pulsar("Crear mi perfil")
+        esperar("¿Con quién quieres jugar?")
+        pulsar("Elegir a Astro")
         esperar("Mi aventura")
         captura("02_Perfil_creado")
         pulsar("Cerrar sesión")

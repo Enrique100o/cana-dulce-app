@@ -28,6 +28,8 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                 Pantalla.GESTION_LECTURA,
                 Pantalla.EDITOR_LECTURA,
                 Pantalla.EDITOR_PREGUNTA,
+                Pantalla.COMPANERO,
+                Pantalla.ENTRENAMIENTO,
             ),
     ) {
         if (!estado.cargando) modelo.volver()
@@ -75,7 +77,13 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                         modelo::refrescar,
                         modelo::cerrarSesion,
                         modelo::quitarMensaje,
+                        { modelo.ir(Pantalla.COMPANERO) },
+                        { modelo.ir(Pantalla.ENTRENAMIENTO) },
                     )
+                Pantalla.COMPANERO ->
+                    PantallaCompanero(estado, modelo::elegirCompanero, modelo::volver)
+                Pantalla.ENTRENAMIENTO ->
+                    PantallaEntrenamiento(estado, modelo::volver)
                 Pantalla.PANEL_DOCENTE ->
                     PantallaDocente(estado, modelo)
                 Pantalla.GESTION_LECTURA -> PantallaGestionLectura(estado, modelo)

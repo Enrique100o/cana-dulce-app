@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.EstadoApp
+import com.canadulce.app.datos.Companero
 import com.canadulce.app.datos.Intento
 import com.canadulce.app.datos.puntos
 import com.canadulce.app.ui.componentes.*
@@ -51,6 +52,7 @@ fun PantallaProgreso(
                     if (docente) progreso.alias else "Mi progreso",
                     if (docente) "${progreso.grado}.º grado · $rango" else "$rango · ${progreso.alias}",
                     estado.movimiento && !docente,
+                    companero = estado.companero ?: Companero.ASTRO,
                 )
             }
             item {

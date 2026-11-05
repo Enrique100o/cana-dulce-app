@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.EstadoApp
+import com.canadulce.app.datos.Companero
 import com.canadulce.app.ui.componentes.*
 
 @Composable
@@ -40,6 +41,7 @@ fun PantallaCuestionario(
     val pregunta = estado.preguntas.getOrNull(indice) ?: return
     val total = estado.preguntas.size
     val seleccionada = estado.selecciones[pregunta.id]
+    val companero = estado.companero ?: Companero.ASTRO
     val combustible by animateFloatAsState(
         estado.selecciones.size.toFloat() / total,
         animationSpec = if (permiteMovimiento(estado.movimiento)) tween(400) else snap(),
@@ -74,9 +76,10 @@ fun PantallaCuestionario(
                     HeroeOrbital(
                         "PREGUNTA ${indice + 1} DE $total",
                         "El reto de la historia",
-                        if (seleccionada == null) "Astro: lee las opciones y elige la que mejor encaje."
-                        else "Astro: guardé tu elección. Puedes cambiarla antes de enviar.",
+                        if (seleccionada == null) "${companero.nombre} te invita a leer todas las opciones."
+                        else "Guardé tu elección. Puedes cambiarla antes de enviar.",
                         estado.movimiento,
+                        companero = companero,
                     )
                 }
                 item {

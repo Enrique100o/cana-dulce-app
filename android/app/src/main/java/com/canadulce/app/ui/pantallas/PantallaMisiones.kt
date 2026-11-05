@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.EstadoApp
+import com.canadulce.app.datos.Companero
 import com.canadulce.app.datos.Intento
 import com.canadulce.app.ui.componentes.*
 
@@ -24,6 +25,8 @@ fun PantallaMisiones(
     onRefrescar: () -> Unit,
     onSalir: () -> Unit,
     onCerrarMensaje: () -> Unit,
+    onCompanero: () -> Unit,
+    onEntrenar: () -> Unit,
 ) {
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -40,9 +43,20 @@ fun PantallaMisiones(
             HeroeOrbital(
                 "MAPA ESTELAR",
                 "Hola, " + estado.sesion?.estudiante?.alias.orEmpty(),
-                "Elige un planeta y descubre su historia.",
+                "${estado.companero?.nombre ?: "Astro"} te acompaña. Elige un planeta y descubre su historia.",
                 estado.movimiento,
+                companero = estado.companero ?: Companero.ASTRO,
             )
+        }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onCompanero, enabled = !estado.cargando, modifier = Modifier.weight(1f)) {
+                    Text("Cambiar personaje")
+                }
+                OutlinedButton(onClick = onEntrenar, enabled = !estado.cargando, modifier = Modifier.weight(1f)) {
+                    Text("Entrenamiento")
+                }
+            }
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
