@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Caña Dulce - API y permisos",
-    "description": "20 operaciones de negocio, salud y sesión. Ejecutar en orden con claves privadas locales. Crea su propio perfil y actividad; al terminar desactiva la lectura y conserva los datos de demostración. Incluye el borrado de un borrador propio y la protección de lecturas con historial.",
+    "description": "21 operaciones de negocio, salud y sesión. Ejecutar en orden con claves privadas locales. Crea su propio perfil y actividad; al terminar desactiva la lectura y conserva los datos de demostración. Incluye el borrado de un borrador propio y la protección de lecturas con historial.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -911,6 +911,54 @@
             "exec": [
               "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
               "pm.test('En progreso',()=>pm.expect(pm.response.json().estado).to.eql('EN_PROGRESO'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20a - Confirmar respuesta y obtener reacción",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/intentos/{{idIntento}}/respuestas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenEstudiante}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idPregunta\":{{idPregunta}},\"idOpcion\":{{idOpcion}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Confirmación de la opción enviada\", () => { const r=pm.response.json(); pm.expect(r.idPregunta).to.eql(Number(pm.collectionVariables.get(\"idPregunta\"))); pm.expect(r.idOpcion).to.eql(Number(pm.collectionVariables.get(\"idOpcion\"))); pm.expect(r.esCorrecta).to.eql(true); });"
             ]
           }
         }

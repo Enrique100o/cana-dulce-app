@@ -46,21 +46,18 @@ async function representarIntento(intento, conexion, detalle = true) {
     estado: intento.estado,
   };
   if (detalle) {
-    resultado.respuestas = [];
-    if (intento.estado === "COMPLETADO") {
-      const [filas] = await conexion.execute(
-        `SELECT r.idRespuesta, r.idPregunta, p.enunciado, p.tipo, p.orden,
+    const [filas] = await conexion.execute(
+      `SELECT r.idRespuesta, r.idPregunta, p.enunciado, p.tipo, p.orden,
                 r.idOpcion, o.texto AS textoOpcionElegida, r.esCorrecta
          FROM RESPUESTA r JOIN PREGUNTA p ON p.idPregunta = r.idPregunta
          JOIN OPCION o ON o.idOpcion = r.idOpcion
          WHERE r.idIntento = ? ORDER BY p.orden, p.idPregunta`,
-        [intento.idIntento],
-      );
-      resultado.respuestas = filas.map((fila) => ({
-        ...fila,
-        esCorrecta: Boolean(fila.esCorrecta),
-      }));
-    }
+      [intento.idIntento],
+    );
+    resultado.respuestas = filas.map((fila) => ({
+      ...fila,
+      esCorrecta: Boolean(fila.esCorrecta),
+    }));
   }
   return resultado;
 }
@@ -108,6 +105,44 @@ async function consultarIntento(sesion, idIntento) {
   });
 }
 
+async function confirmarRespuesta(sesion, idIntento, seleccion) {
+  return ejecutarTransaccion(async (conexion) => {
+    const intento = await buscarIntento(idIntento, conexion, true);
+    permitirPropietario(sesion, intento.idEstudiante);
+    const [guardadas] = await conexion.execute(
+      `SELECT idPregunta, idOpcion, esCorrecta FROM RESPUESTA
+       WHERE idIntento = ? AND idPregunta = ?`,
+      [idIntento, seleccion.idPregunta],
+    );
+    const guardada = guardadas[0];
+    if (guardada) {
+      if (guardada.idOpcion !== seleccion.idOpcion) {
+        fallar(409, "Esta pregunta ya tiene una respuesta confirmada.");
+      }
+      return { ...guardada, esCorrecta: Boolean(guardada.esCorrecta) };
+    }
+    if (intento.estado !== "EN_PROGRESO") {
+      fallar(409, "El intento ya está completado y no puede modificarse.");
+    }
+    const [opciones] = await conexion.execute(
+      `SELECT o.esCorrecta FROM PREGUNTA p
+       JOIN OPCION o ON o.idPregunta = p.idPregunta
+       WHERE p.idLectura = ? AND p.idPregunta = ?
+         AND p.estado = 'ACTIVA' AND o.idOpcion = ?`,
+      [intento.idLectura, seleccion.idPregunta, seleccion.idOpcion],
+    );
+    if (!opciones[0]) {
+      fallar(400, "Elige una opción válida de una pregunta de esta actividad.");
+    }
+    const correcta = Number(opciones[0].esCorrecta);
+    await conexion.execute(
+      "INSERT INTO RESPUESTA (idIntento, idPregunta, idOpcion, esCorrecta) VALUES (?, ?, ?, ?)",
+      [idIntento, seleccion.idPregunta, seleccion.idOpcion, correcta],
+    );
+    return { ...seleccion, esCorrecta: Boolean(correcta) };
+  });
+}
+
 async function finalizarIntento(sesion, idIntento, selecciones) {
   return ejecutarTransaccion(async (conexion) => {
     const intento = await buscarIntento(idIntento, conexion, true);
@@ -137,6 +172,19 @@ async function finalizarIntento(sesion, idIntento, selecciones) {
       fallar(409, "El cuestionario no coincide con el intento.");
     if (selecciones.length !== preguntas.length)
       fallar(400, "Responde todas las preguntas antes de finalizar.");
+    const [confirmadas] = await conexion.execute(
+      "SELECT idPregunta, idOpcion FROM RESPUESTA WHERE idIntento = ?",
+      [idIntento],
+    );
+    const cambiaConfirmada = confirmadas.some((respuesta) =>
+      !selecciones.some((seleccion) =>
+        seleccion.idPregunta === respuesta.idPregunta &&
+        seleccion.idOpcion === respuesta.idOpcion,
+      ),
+    );
+    if (cambiaConfirmada) {
+      fallar(409, "Las respuestas confirmadas se conservan al finalizar la misión.");
+    }
     const evaluadas = selecciones.map((seleccion) => {
       const pregunta = preguntas.find(
         (item) =>
@@ -152,7 +200,9 @@ async function finalizarIntento(sesion, idIntento, selecciones) {
     const correctas = evaluadas.filter(
       (seleccion) => seleccion.esCorrecta === 1,
     ).length;
+    const preguntasGuardadas = new Set(confirmadas.map((respuesta) => respuesta.idPregunta));
     for (const seleccion of evaluadas) {
+      if (preguntasGuardadas.has(seleccion.idPregunta)) continue;
       await conexion.execute(
         "INSERT INTO RESPUESTA (idIntento, idPregunta, idOpcion, esCorrecta) VALUES (?, ?, ?, ?)",
         [
@@ -185,5 +235,6 @@ module.exports = {
   representarIntento,
   iniciarIntento,
   consultarIntento,
+  confirmarRespuesta,
   finalizarIntento,
 };

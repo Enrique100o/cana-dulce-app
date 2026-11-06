@@ -286,17 +286,26 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
         return preguntas
     }
 
-    private fun mostrarCuestionario(
+    private suspend fun mostrarCuestionario(
         sesion: Sesion, lectura: Lectura, intento: Intento, preguntas: List<Pregunta>,
     ) {
         val estudiante = sesion.estudiante ?: return
+        val actual = api.solicitar("api/intentos/${intento.id}", token = sesion.token)
+        if (actual.getString("estado") == "COMPLETADO") {
+            mostrarResultado(actual, Pantalla.MISIONES)
+            return
+        }
+        val confirmadas = actual.getJSONArray("respuestas").leer(RespuestaConfirmada::desdeJson)
+            .associateBy { it.idPregunta }
         val (paso, selecciones) = borradores.leer(estudiante.idEstudiante, intento.id, preguntas)
         estado = estado.copy(
             pantalla = Pantalla.CUESTIONARIO,
             lectura = lectura,
             preguntas = preguntas,
             idIntento = intento.id,
-            selecciones = selecciones,
+            selecciones = selecciones + confirmadas.mapValues { it.value.idOpcion },
+            confirmadas = confirmadas,
+            reaccionPregunta = confirmadas[preguntas[paso].id],
             pasoPregunta = paso,
             resultado = null,
             regresarAlCuestionario = false,
@@ -319,7 +328,8 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
 
     fun elegirRespuesta(idPregunta: Int, idOpcion: Int) {
         val pregunta = estado.preguntas.getOrNull(estado.pasoPregunta) ?: return
-        if (estado.cargando || pregunta.id != idPregunta || pregunta.opciones.none { it.id == idOpcion })
+        if (estado.cargando || idPregunta in estado.confirmadas || pregunta.id != idPregunta ||
+            pregunta.opciones.none { it.id == idOpcion })
             return
         estado = estado.copy(selecciones = estado.selecciones + (idPregunta to idOpcion), error = null)
         guardarBorrador()
@@ -327,8 +337,58 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
 
     fun irAPregunta(indice: Int) {
         if (estado.cargando || indice !in estado.preguntas.indices) return
-        estado = estado.copy(pasoPregunta = indice, error = null)
+        estado = estado.copy(
+            pasoPregunta = indice,
+            reaccionPregunta = estado.confirmadas[estado.preguntas[indice].id],
+            error = null,
+        )
         guardarBorrador()
+    }
+
+    fun confirmarRespuestaActual() {
+        if (estado.cargando) return
+        val pregunta = estado.preguntas.getOrNull(estado.pasoPregunta) ?: return
+        val opcion = estado.selecciones[pregunta.id]
+            ?: return error("Elige una respuesta antes de continuar.")
+        estado.confirmadas[pregunta.id]?.let {
+            estado = estado.copy(reaccionPregunta = it)
+            return
+        }
+        ejecutar {
+            val sesion = estado.sesion ?: return@ejecutar
+            val intento = estado.idIntento ?: return@ejecutar
+            val respuesta = try {
+                RespuestaConfirmada.desdeJson(api.solicitar(
+                    "api/intentos/$intento/respuestas", "POST",
+                    JSONObject().put("idPregunta", pregunta.id).put("idOpcion", opcion), sesion.token,
+                ))
+            } catch (fallo: ErrorApi) {
+                if (fallo.estado != 409) throw fallo
+                val actual = api.solicitar("api/intentos/$intento", token = sesion.token)
+                if (actual.getString("estado") == "COMPLETADO") {
+                    mostrarResultado(actual, Pantalla.MISIONES)
+                    return@ejecutar
+                }
+                actual.getJSONArray("respuestas").leer(RespuestaConfirmada::desdeJson)
+                    .firstOrNull { it.idPregunta == pregunta.id } ?: throw fallo
+            }
+            estado = estado.copy(
+                confirmadas = estado.confirmadas + (pregunta.id to respuesta),
+                selecciones = estado.selecciones + (pregunta.id to respuesta.idOpcion),
+                reaccionPregunta = respuesta,
+            )
+            guardarBorrador()
+        }
+    }
+
+    fun continuarCuestionario() {
+        if (estado.cargando || estado.reaccionPregunta == null) return
+        if (estado.pasoPregunta < estado.preguntas.lastIndex) {
+            irAPregunta(estado.pasoPregunta + 1)
+        } else {
+            val pendiente = estado.preguntas.indexOfFirst { it.id !in estado.confirmadas }
+            if (pendiente >= 0) irAPregunta(pendiente) else finalizarMision()
+        }
     }
 
     private fun guardarBorrador() {
@@ -382,6 +442,8 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
             premiosNuevos = emptyList(),
             idIntento = null,
             selecciones = emptyMap(),
+            confirmadas = emptyMap(),
+            reaccionPregunta = null,
             pendientes = estado.pendientes.filterNot { it.id == id },
             regresarAlCuestionario = false,
         )

@@ -109,7 +109,8 @@ fun AplicacionCanaDulce(modelo: PrincipalViewModel) {
                         modelo::releer,
                         modelo::elegirRespuesta,
                         modelo::irAPregunta,
-                        modelo::finalizarMision,
+                        modelo::confirmarRespuestaActual,
+                        modelo::continuarCuestionario,
                         modelo::quitarMensaje,
                     )
                 Pantalla.RESULTADO ->

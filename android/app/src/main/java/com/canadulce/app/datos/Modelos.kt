@@ -93,6 +93,8 @@ data class EstadoApp(
     val tamanoTexto: Int = 20,
     val preguntas: List<Pregunta> = emptyList(),
     val selecciones: Map<Int, Int> = emptyMap(),
+    val confirmadas: Map<Int, RespuestaConfirmada> = emptyMap(),
+    val reaccionPregunta: RespuestaConfirmada? = null,
     val idIntento: Int? = null,
     val resultado: Resultado? = null,
     val regresarAlCuestionario: Boolean = false,
@@ -108,6 +110,14 @@ data class EstadoApp(
 )
 
 data class Opcion(val id: Int, val texto: String, val correcta: Boolean = false)
+
+data class RespuestaConfirmada(val idPregunta: Int, val idOpcion: Int, val correcta: Boolean) {
+    companion object {
+        fun desdeJson(json: JSONObject) = RespuestaConfirmada(
+            json.getInt("idPregunta"), json.getInt("idOpcion"), json.getBoolean("esCorrecta"),
+        )
+    }
+}
 
 data class Pregunta(
     val id: Int,

@@ -12,6 +12,7 @@ const {
 const {
   iniciarIntento,
   consultarIntento,
+  confirmarRespuesta,
   finalizarIntento,
   permitirPropietario,
   representarIntento,
@@ -83,6 +84,18 @@ router.get("/:id", async (req, res) => {
   sinCuerpo(req);
   filtros(req);
   res.json(await consultarIntento(req.sesion, identificador(req.params.id)));
+});
+
+router.post("/:id/respuestas", permitirRol("ESTUDIANTE"), async (req, res) => {
+  filtros(req);
+  objeto(req.body, ["idPregunta", "idOpcion"]);
+  const seleccion = {
+    idPregunta: entero(req.body.idPregunta, "La pregunta"),
+    idOpcion: entero(req.body.idOpcion, "La opción"),
+  };
+  res.json(
+    await confirmarRespuesta(req.sesion, identificador(req.params.id), seleccion),
+  );
 });
 
 router.post("/:id/finalizar", permitirRol("ESTUDIANTE"), async (req, res) => {

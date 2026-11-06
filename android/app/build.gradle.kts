@@ -13,8 +13,8 @@ android {
         applicationId = "com.canadulce.app"
         minSdk = 24
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.2.2"
+        versionCode = 6
+        versionName = "1.2.3"
         buildConfigField("String", "API_URL", "\"https://cana-dulce-api.onrender.com/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

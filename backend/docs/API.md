@@ -30,6 +30,7 @@ del token; no existe una lista de revocación de JWT en el servidor.
 | 18 | POST `/api/intentos/:id/finalizar` | Estudiante propietario | 200, resultado y respuestas |
 | 19 | GET `/api/estudiantes/:id/progreso` | Propietario o docente | 200, resumen e insignias |
 | 20 | DELETE `/api/lecturas/:id/eliminar` | Docente | 204, eliminación de una lectura sin intentos |
+| 21 | POST `/api/intentos/:id/respuestas` | Estudiante propietario | 200, respuesta confirmada y `esCorrecta` |
 
 Rutas auxiliares: GET `/health` comprueba API y MySQL; GET `/api/sesiones/actual`
 valida la sesión. No se reciben cuerpos en consultas GET ni en DELETE.
@@ -112,6 +113,12 @@ intentos y la edición de preguntas. Repetir una eliminación ya completada devu
 Iniciar: `{"idLectura":1}`. Solo se permite un intento pendiente por estudiante
 y lectura. Otro inicio concurrente devuelve 409 con `idIntentoExistente`.
 
+Confirmar una pregunta envía `{"idPregunta":1,"idOpcion":2}` a
+`POST /api/intentos/:id/respuestas`. La API guarda la primera elección y devuelve
+la corrección de esa opción para mostrar la animación antes de continuar. Repetir
+la misma elección devuelve la confirmación guardada. Intentar cambiarla devuelve
+409. Consultar el intento pendiente recupera esas respuestas confirmadas.
+
 Finalizar:
 
 ```json
@@ -123,6 +130,8 @@ pertenecer a la pregunta indicada. Toda la entrega y el resultado se guardan en 
 transacción. El servidor calcula `puntaje = correctas / total * 100`, redondeado a dos
 decimales. Enviar la misma selección otra vez devuelve el resultado guardado; cambiar
 las respuestas de un intento completado devuelve 409.
+Las respuestas confirmadas durante el recorrido también se conservan al finalizar.
+El endpoint de finalización acepta las entregas completas de versiones anteriores.
 
 Estrellas: 0 puntos = 0; más de 0 y menos de 50 = 1; de 50 a menos de 80 = 2;
 80 o más = 3. El intento pendiente tiene puntaje y estrellas nulos.

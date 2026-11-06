@@ -22,7 +22,7 @@ La dirección `/health` devuelve JSON con el estado del servidor y su conexión 
 - `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
 - `android/app/src/main/java/com/canadulce/app/ui/pantallas`: una pantalla por archivo.
 - `android/app/src/main/java/com/canadulce/app/ui/componentes`: controles y tarjetas compartidos.
-- `backend/docs/API.md`: contrato de las 20 operaciones de negocio.
+- `backend/docs/API.md`: contrato de las 21 operaciones de negocio.
 - `backend/postman/CanaDulce.postman_collection.json`: colección ordenada de pruebas HTTP.
 - `render.yaml`: configuración de despliegue del backend.
 
@@ -83,7 +83,8 @@ puede tardar mientras el servicio vuelve a iniciar.
 Registro e ingreso de estudiantes, ingreso docente, sesión actual y permisos por rol;
 creación, consulta, actualización, publicación y desactivación de lecturas; creación de
 preguntas con opciones y consulta del cuestionario. La consulta estudiantil oculta las
-respuestas correctas.
+claves de las opciones. Al confirmar cada respuesta, el servidor devuelve su corrección
+y Android muestra el gesto del personaje antes de pasar a la siguiente pregunta.
 
 El backend también incluye edición y desactivación de preguntas, historial e inicio de
 intentos, entrega de respuestas, calificación, estrellas, progreso e insignias. El servidor
