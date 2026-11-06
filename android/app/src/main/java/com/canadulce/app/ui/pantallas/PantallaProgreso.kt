@@ -47,19 +47,29 @@ fun PantallaProgreso(
                 else -> "Cadete espacial"
             }
             item {
-                HeroeOrbital(
-                    "BITÁCORA ESTELAR",
-                    if (docente) progreso.alias else "Mi progreso",
-                    if (docente) "${progreso.grado}.º grado · $rango" else "$rango · ${progreso.alias}",
-                    estado.movimiento && !docente,
-                    companero = estado.companero ?: Companero.ASTRO,
-                )
+                if (docente) {
+                    CabeceraDocente(
+                        "SEGUIMIENTO INDIVIDUAL",
+                        progreso.alias,
+                        "${progreso.grado}.º grado · $rango",
+                    )
+                } else {
+                    HeroeOrbital(
+                        "BITÁCORA ESTELAR", "Mi progreso", "$rango · ${progreso.alias}",
+                        estado.movimiento, companero = estado.companero ?: Companero.ASTRO,
+                    )
+                }
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MedidorProgreso(progreso.estrellas.toString(), "Estrellas", Modifier.weight(1f))
-                    MedidorProgreso(progreso.misiones.toString(), "Misiones", Modifier.weight(1f))
-                    MedidorProgreso(puntos(progreso.puntos), "Puntos", Modifier.weight(1f))
+                    if (docente) {
+                        IndicadorDocente(progreso.misiones.toString(), "Lecturas completadas", SimboloDocente.LIBRO, Modifier.weight(1f))
+                        IndicadorDocente(progreso.promedio?.let(::puntos) ?: "—", "Promedio de puntaje", SimboloDocente.PREGUNTAS, Modifier.weight(1f))
+                    } else {
+                        MedidorProgreso(progreso.estrellas.toString(), "Estrellas", Modifier.weight(1f))
+                        MedidorProgreso(progreso.misiones.toString(), "Misiones", Modifier.weight(1f))
+                        MedidorProgreso(puntos(progreso.puntos), "Puntos", Modifier.weight(1f))
+                    }
                 }
             }
             item {
@@ -96,7 +106,8 @@ fun PantallaProgreso(
                     ),
                 ) {
                     Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        PlanetaMision(insignia.codigo.length, Modifier.size(54.dp))
+                        if (docente) IconoDocente(SimboloDocente.LIBRO, Modifier.size(34.dp))
+                        else PlanetaMision(insignia.codigo.length, Modifier.size(54.dp))
                         Column(Modifier.weight(1f).padding(start = 8.dp)) {
                             Text(insignia.nombre, style = MaterialTheme.typography.titleMedium)
                             Text(if (insignia.obtenida) "Desbloqueada ✓" else objetivo)
@@ -108,7 +119,13 @@ fun PantallaProgreso(
         if (progreso != null || estado.historial.isNotEmpty()) {
             item { Text("Historial de misiones", style = MaterialTheme.typography.titleLarge) }
             if (estado.historial.isEmpty() && !estado.cargando && estado.error == null) {
-                item { Text("Aquí aparecerán los resultados de tus misiones completadas.") }
+                item {
+                    if (docente) VacioDocente(
+                        "El proceso de lectura empieza aquí",
+                        "Este estudiante todavía no tiene misiones completadas.",
+                        SimboloDocente.ESTUDIANTES,
+                    ) else Text("Aquí aparecerán los resultados de tus misiones completadas.")
+                }
             }
             items(estado.historial, key = { it.id }) { intento ->
                 Card(

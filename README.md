@@ -22,7 +22,7 @@ La dirección `/health` devuelve JSON con el estado del servidor y su conexión 
 - `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
 - `android/app/src/main/java/com/canadulce/app/ui/pantallas`: una pantalla por archivo.
 - `android/app/src/main/java/com/canadulce/app/ui/componentes`: controles y tarjetas compartidos.
-- `backend/docs/API.md`: contrato de las 19 operaciones de negocio.
+- `backend/docs/API.md`: contrato de las 20 operaciones de negocio.
 - `backend/postman/CanaDulce.postman_collection.json`: colección ordenada de pruebas HTTP.
 - `render.yaml`: configuración de despliegue del backend.
 
@@ -98,6 +98,11 @@ calcula los resultados y protege la edición de actividades que ya tienen intent
   se calculan en el servidor. La práctica tiene su propio texto y tres retos locales.
 - Docentes: gestión de lecturas, preguntas y opciones, publicación, desactivación
   y consulta de progreso. La API protege el historial y aplica permisos por rol.
+
+El área docente incluye formularios por secciones, tarjetas de biblioteca y
+seguimiento individual. El botón Eliminar lectura solicita confirmación y borra
+lecturas sin intentos junto con sus preguntas. Las lecturas con historial se
+conservan y pueden desactivarse.
 
 El personaje, el movimiento y el borrador del intento se guardan en el dispositivo.
 Los resultados enviados y las insignias se recuperan de la API. La sesión cifrada

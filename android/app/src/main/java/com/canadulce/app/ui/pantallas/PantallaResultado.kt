@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,27 +32,49 @@ fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () ->
     val companero = estado.companero ?: Companero.ASTRO
     val esEstudiante = estado.sesion?.rol == "ESTUDIANTE"
     var respuestaAbierta by rememberSaveable { mutableIntStateOf(-1) }
+    var respuestaVisible by remember { mutableIntStateOf(-1) }
+    val lista = rememberLazyListState()
     val perfecto = resultado.total > 0 && resultado.correctas == resultado.total
+    val primeraRespuesta = 4 + (if (perfecto && esEstudiante) 1 else 0) +
+        (if (estado.premiosNuevos.isNotEmpty()) 1 else 0)
     val animar = permiteMovimiento(estado.movimiento) && estado.regresoResultado == Pantalla.MISIONES
     val celebracion = remember(resultado, animar) { Animatable(if (animar) 0f else 1f) }
     LaunchedEffect(celebracion) {
         if (animar) celebracion.animateTo(1f, tween(1550))
     }
+    LaunchedEffect(respuestaAbierta) {
+        respuestaVisible = -1
+        if (respuestaAbierta >= 0) {
+            if (permiteMovimiento(estado.movimiento)) {
+                lista.animateScrollToItem(primeraRespuesta + respuestaAbierta)
+            } else lista.scrollToItem(primeraRespuesta + respuestaAbierta)
+            respuestaVisible = respuestaAbierta
+        }
+    }
     LazyColumn(
         Modifier.fillMaxSize(),
+        state = lista,
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            HeroeOrbital(
-                "REGRESO A LA BASE",
-                "¡Misión completada!",
-                if (resultado.estrellas >= 2) "¡Tu lectura iluminó la galaxia!"
-                else "${companero.nombre} celebra tu esfuerzo. Cada misión te ayuda a mejorar.",
-                estado.movimiento,
-                companero = companero,
-                gesto = if (perfecto) GestoOrbital.CELEBRAR else GestoOrbital.ANIMAR,
-            )
+            if (esEstudiante) {
+                HeroeOrbital(
+                    "REGRESO A LA BASE",
+                    "¡Misión completada!",
+                    if (resultado.estrellas >= 2) "¡Tu lectura iluminó la galaxia!"
+                    else "${companero.nombre} celebra tu esfuerzo. Cada misión te ayuda a mejorar.",
+                    estado.movimiento,
+                    companero = companero,
+                    gesto = if (perfecto) GestoOrbital.CELEBRAR else GestoOrbital.ANIMAR,
+                )
+            } else {
+                CabeceraDocente(
+                    "SEGUIMIENTO · RESULTADO",
+                    "Detalle del intento",
+                    "Consulta el puntaje y revisa las respuestas de esta actividad.",
+                )
+            }
         }
         item {
             Card(Modifier.fillMaxWidth()) {
@@ -150,14 +173,14 @@ fun PantallaResultado(estado: EstadoApp, onVolver: () -> Unit, onProgreso: () ->
                             Text(if (respuestaAbierta == indice) "Cerrar reacción" else "Ver reacción de ${companero.nombre}")
                         }
                         if (respuestaAbierta == indice) {
-                            HeroeOrbital(
-                                if (respuesta.correcta) "ESTRELLA DE LECTURA" else "UNA PISTA MÁS",
+                            ReaccionRespuesta(
+                                companero,
+                                estado.movimiento,
+                                respuesta.correcta,
                                 if (respuesta.correcta) "¡Bien hecho!" else "Volvamos a la historia",
                                 if (respuesta.correcta) "Encontraste la respuesta en el texto."
                                 else "Busca el pasaje de la pregunta y compara las opciones en tu próximo intento.",
-                                estado.movimiento,
-                                companero = companero,
-                                gesto = if (respuesta.correcta) GestoOrbital.CELEBRAR else GestoOrbital.ANIMAR,
+                                iniciar = respuestaVisible == indice,
                             )
                         }
                     }

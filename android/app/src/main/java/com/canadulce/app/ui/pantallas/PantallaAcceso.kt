@@ -24,12 +24,19 @@ fun PantallaAcceso(
     val foco = LocalFocusManager.current
     val teclado = LocalSoftwareKeyboardController.current
     PaginaFormulario(estado.cargando, onVolver) {
-        EncabezadoAventura(
-            if (docente) "Un espacio para acompañar" else "¡Qué alegría verte!",
-            if (docente) "Ingresa a tu área de lecturas y estudiantes."
-            else "Tu mundo de historias está listo para continuar.",
-            if (docente) "ÁREA DOCENTE" else "MI AVENTURA",
-        )
+        if (docente) {
+            CabeceraDocente(
+                "CAÑA DULCE · ÁREA DOCENTE",
+                "Tu próxima historia empieza aquí",
+                "Organiza tus lecturas y acompaña el progreso de tu grupo.",
+            )
+        } else {
+            EncabezadoAventura(
+                "¡Qué alegría verte!",
+                "Tu mundo de historias está listo para continuar.",
+                "MI AVENTURA",
+            )
+        }
         MensajePantalla(estado.error, estado.aviso, onCerrarMensaje)
         OutlinedTextField(
             value = usuario,

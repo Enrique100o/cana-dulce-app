@@ -25,11 +25,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.canadulce.app.datos.Companero
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -40,7 +43,7 @@ private val Traje = Color(0xFFF4EFFF)
 private val SombraTraje = Color(0xFFACA3F3)
 private val Casco = Color(0xFF221A51)
 
-enum class GestoOrbital { FLOTAR, CELEBRAR, ANIMAR }
+enum class GestoOrbital { FLOTAR, CELEBRAR, ANIMAR, DESANIMAR }
 
 fun permiteMovimiento(activado: Boolean): Boolean =
     activado && (Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled())
@@ -129,12 +132,18 @@ fun PersonajeOrbital(
     } else null
     val reaccion = remember { Animatable(0f) }
     LaunchedEffect(gesto, pulso, animar) {
-        reaccion.snapTo(0f)
+        reaccion.snapTo(if (animar) 0f else 1f)
         if (animar && gesto != GestoOrbital.FLOTAR) {
-            reaccion.animateTo(1f, tween(gesto.duracion()))
+            reaccion.animateTo(1f, tween(gesto.duracion(), easing = LinearEasing))
         }
     }
-    Canvas(modifier) {
+    val descripcion = when (gesto) {
+        GestoOrbital.FLOTAR -> "${companero.nombre} flota en el espacio"
+        GestoOrbital.CELEBRAR -> "${companero.nombre} salta de alegría y levanta los brazos"
+        GestoOrbital.ANIMAR -> "${companero.nombre} te anima a seguir"
+        GestoOrbital.DESANIMAR -> "${companero.nombre} baja la cabeza y los brazos al equivocarse"
+    }
+    Canvas(modifier.semantics { contentDescription = descripcion }) {
         val unidad = minOf(size.width / 116f, size.height / 135f)
         val fase = vuelo?.value ?: 0f
         withTransform({
@@ -149,44 +158,86 @@ fun PersonajeOrbital(
             destello(Offset(102f, 61f), 6f, MentaOrbital)
             destello(Offset(91f, 112f), 4f, LilaOrbital)
             drawCircle(OroOrbital, 2.6f, Offset(25f, 107f))
-            val onda = sin(reaccion.value * PI).toFloat()
-            val salto = if (gesto == GestoOrbital.CELEBRAR) -12f * onda else 0f
+            val progreso = reaccion.value
+            val onda = sin(progreso * PI).toFloat()
+            val celebra = gesto == GestoOrbital.CELEBRAR
+            val triste = gesto == GestoOrbital.DESANIMAR
+            val impulso = if (celebra) {
+                abs(sin(progreso * PI * 2)).toFloat() * (1f - progreso * .35f)
+            } else 0f
+            val salto = if (celebra) -17f * impulso else 0f
             val giro = if (gesto == GestoOrbital.ANIMAR) -9f * onda else 0f
+            val desanimo = if (triste) (progreso / .3f).coerceIn(0f, 1f) else 0f
+            drawOval(
+                Casco.copy(alpha = .2f),
+                Offset(31f + impulso * 4f, 123f),
+                Size(56f - impulso * 8f, 6f),
+            )
             withTransform({
-                translate(top = fase * 5f + salto)
-                rotate(giro, Offset(58f, 72f))
+                translate(top = fase * 5f + salto + desanimo * 4f)
+                rotate(giro + if (triste) onda * 4f else 0f, Offset(58f, 72f))
+                scale(1f + onda * .035f, 1f - onda * .025f, Offset(58f, 116f))
             }) {
-                dibujarCompanero(companero, fase, gesto)
+                dibujarCompanero(companero, fase, gesto, progreso)
             }
-            if (gesto == GestoOrbital.CELEBRAR) {
+            if (celebra) {
                 destello(Offset(15f, 25f - onda * 5), 8f, OroOrbital, 5)
                 destello(Offset(102f, 31f - onda * 6), 6f, MentaOrbital, 5)
+                repeat(8) { i ->
+                    val angulo = i * PI / 4
+                    val alcance = 20f + progreso * 34f
+                    val centro = Offset(
+                        58f + cos(angulo).toFloat() * alcance,
+                        62f + sin(angulo).toFloat() * alcance - onda * 10f,
+                    )
+                    destello(centro, 2f + onda * 2f, OroOrbital.copy(alpha = 1f - progreso), 5)
+                }
             } else if (gesto == GestoOrbital.ANIMAR) {
                 dibujarPista(Offset(99f, 35f - onda * 4))
+            } else if (triste) {
+                repeat(3) { i ->
+                    drawCircle(
+                        LilaOrbital.copy(alpha = .7f - i * .15f),
+                        2.3f - i * .4f,
+                        Offset(94f + i * 5f, 66f - i * 4f - onda * 5f),
+                    )
+                }
             }
         }
     }
 }
 
-private fun GestoOrbital.duracion(): Int = if (this == GestoOrbital.CELEBRAR) 650 else 780
+private fun GestoOrbital.duracion(): Int = when (this) {
+    GestoOrbital.CELEBRAR -> 1600
+    GestoOrbital.DESANIMAR -> 1800
+    else -> 780
+}
 
-private fun DrawScope.dibujarCompanero(companero: Companero, fase: Float, gesto: GestoOrbital) {
+private fun DrawScope.dibujarCompanero(
+    companero: Companero,
+    fase: Float,
+    gesto: GestoOrbital,
+    progreso: Float,
+) {
     val lina = companero == Companero.LINA
     val sombra = if (lina) Color(0xFF76C6C0) else SombraTraje
     val acento = if (lina) Color(0xFFFFB071) else MentaOrbital
     val equipo = if (lina) Color(0xFF347A85) else Color(0xFF7865D4)
     val celebra = gesto == GestoOrbital.CELEBRAR
     val orienta = gesto == GestoOrbital.ANIMAR
+    val desanimo = if (gesto == GestoOrbital.DESANIMAR) (progreso / .3f).coerceIn(0f, 1f) else 0f
+    val saludo = if (celebra) sin(progreso * PI * 4).toFloat() * 5f else 0f
     drawRoundRect(equipo, Offset(32f, 63f), Size(54f, 38f), CornerRadius(13f))
     drawLine(sombra, Offset(47f, 93f), Offset(43f, 112f), 15f, StrokeCap.Round)
     drawLine(Traje, Offset(69f, 93f), Offset(75f, 109f), 15f, StrokeCap.Round)
     drawRoundRect(Casco, Offset(32f, 111f), Size(22f, 10f), CornerRadius(5f))
     drawRoundRect(Casco, Offset(69f, 107f), Size(22f, 10f), CornerRadius(5f))
-    val manoIzquierda = if (celebra) Offset(19f, 55f) else Offset(24f, 84f)
+    val manoIzquierda = if (celebra) Offset(19f, 44f + saludo)
+    else Offset(24f + desanimo * 7f, 84f + desanimo * 10f)
     val manoDerecha = when {
-        celebra -> Offset(99f, 52f)
+        celebra -> Offset(99f, 42f - saludo)
         orienta -> Offset(96f, 50f)
-        else -> Offset(94f, 63f + fase * 3f)
+        else -> Offset(94f - desanimo * 9f, 63f + fase * 3f + desanimo * 30f)
     }
     drawLine(Traje, Offset(41f, 75f), manoIzquierda, 13f, StrokeCap.Round)
     drawCircle(acento, 7f, manoIzquierda)
@@ -197,42 +248,53 @@ private fun DrawScope.dibujarCompanero(companero: Companero, fase: Float, gesto:
     drawRoundRect(equipo, Offset(51f, 76f), Size(19f, 13f), CornerRadius(4f))
     drawCircle(acento, 2.5f, Offset(56.5f, 82.5f))
     drawCircle(OroOrbital, 2.5f, Offset(64.5f, 82.5f))
-    drawRoundRect(sombra, Offset(24f, 24f), Size(68f, 47f), CornerRadius(22f))
-    drawRoundRect(Traje, Offset(25f, 17f), Size(66f, 51f), CornerRadius(24f))
-    drawCircle(sombra, 7f, Offset(25f, 44f))
-    drawCircle(sombra, 7f, Offset(91f, 44f))
-    drawRoundRect(
-        Brush.linearGradient(listOf(equipo, Casco), Offset(36f, 26f), Offset(79f, 60f)),
-        Offset(32f, 27f), Size(52f, 32f), CornerRadius(15f),
-    )
-    if (lina) {
-        drawOval(Color(0xFF39213D), Offset(39f, 28f), Size(40f, 31f))
-        drawOval(Color(0xFFD4956A), Offset(46f, 33f), Size(26f, 25f))
-        val flequillo = Path().apply {
-            moveTo(43f, 42f)
-            quadraticTo(43f, 27f, 62f, 30f)
-            quadraticTo(73f, 30f, 74f, 41f)
-            quadraticTo(64f, 41f, 60f, 35f)
-            quadraticTo(54f, 43f, 43f, 42f)
-            close()
+    withTransform({
+        translate(top = desanimo * 4f)
+        rotate(desanimo * 10f, Offset(58f, 63f))
+    }) {
+        drawRoundRect(sombra, Offset(24f, 24f), Size(68f, 47f), CornerRadius(22f))
+        drawRoundRect(Traje, Offset(25f, 17f), Size(66f, 51f), CornerRadius(24f))
+        drawCircle(sombra, 7f, Offset(25f, 44f))
+        drawCircle(sombra, 7f, Offset(91f, 44f))
+        drawRoundRect(
+            Brush.linearGradient(listOf(equipo, Casco), Offset(36f, 26f), Offset(79f, 60f)),
+            Offset(32f, 27f), Size(52f, 32f), CornerRadius(15f),
+        )
+        if (lina) {
+            drawOval(Color(0xFF39213D), Offset(39f, 28f), Size(40f, 31f))
+            drawOval(Color(0xFFD4956A), Offset(46f, 33f), Size(26f, 25f))
+            val flequillo = Path().apply {
+                moveTo(43f, 42f)
+                quadraticTo(43f, 27f, 62f, 30f)
+                quadraticTo(73f, 30f, 74f, 41f)
+                quadraticTo(64f, 41f, 60f, 35f)
+                quadraticTo(54f, 43f, 43f, 42f)
+                close()
+            }
+            drawPath(flequillo, Color(0xFF39213D))
+            drawCircle(Color(0xFFECAB92), 2.4f, Offset(49f, 49f))
+            drawCircle(Color(0xFFECAB92), 2.4f, Offset(69f, 49f))
         }
-        drawPath(flequillo, Color(0xFF39213D))
-        drawCircle(Color(0xFFECAB92), 2.4f, Offset(49f, 49f))
-        drawCircle(Color(0xFFECAB92), 2.4f, Offset(69f, 49f))
-    }
-    drawRoundRect(Color.White.copy(alpha = .40f), Offset(39f, 31f), Size(10f, 2.5f), CornerRadius(2f))
-    val ojos = if (lina) Color(0xFF382239) else MentaOrbital
-    if (celebra) {
-        listOf(50f, 67f).forEach { x ->
-            drawArc(ojos, 185f, 170f, false, Offset(x - 3, 42f), Size(6f, 5f),
-                style = Stroke(1.7f, cap = StrokeCap.Round))
+        drawRoundRect(Color.White.copy(alpha = .40f), Offset(39f, 31f), Size(10f, 2.5f), CornerRadius(2f))
+        val ojos = if (lina) Color(0xFF382239) else MentaOrbital
+        if (celebra) {
+            listOf(50f, 67f).forEach { x ->
+                drawArc(ojos, 185f, 170f, false, Offset(x - 3, 42f), Size(6f, 5f),
+                    style = Stroke(1.7f, cap = StrokeCap.Round))
+            }
+        } else if (desanimo > 0f) {
+            drawLine(ojos, Offset(47f, 46f), Offset(53f, 44f), 1.8f, StrokeCap.Round)
+            drawLine(ojos, Offset(64f, 44f), Offset(70f, 46f), 1.8f, StrokeCap.Round)
+            drawLine(ojos, Offset(47f, 40f), Offset(53f, 38f), 1.2f, StrokeCap.Round)
+            drawLine(ojos, Offset(64f, 38f), Offset(70f, 40f), 1.2f, StrokeCap.Round)
+        } else {
+            drawLine(ojos, Offset(50f, 43f), Offset(50f, 46f), 2.6f, StrokeCap.Round)
+            drawLine(ojos, Offset(67f, 43f), Offset(67f, 46f), 2.6f, StrokeCap.Round)
         }
-    } else {
-        drawLine(ojos, Offset(50f, 43f), Offset(50f, 46f), 2.6f, StrokeCap.Round)
-        drawLine(ojos, Offset(67f, 43f), Offset(67f, 46f), 2.6f, StrokeCap.Round)
+        drawArc(ojos, if (desanimo > 0f) 180f else 0f, 180f, false,
+            Offset(54f, if (desanimo > 0f) 50f else 46f), Size(9f, if (celebra) 9f else 6f),
+            style = Stroke(1.6f, cap = StrokeCap.Round))
     }
-    drawArc(ojos, 0f, 180f, false, Offset(54f, 46f), Size(9f, if (celebra) 9f else 6f),
-        style = Stroke(1.6f, cap = StrokeCap.Round))
 }
 
 private fun DrawScope.dibujarPista(centro: Offset) {

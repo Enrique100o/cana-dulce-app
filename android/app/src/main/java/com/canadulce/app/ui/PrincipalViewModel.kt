@@ -535,6 +535,19 @@ class PrincipalViewModel(aplicacion: Application) : AndroidViewModel(aplicacion)
         )
     }
 
+    fun eliminarLectura() = ejecutar {
+        val sesion = estado.sesion ?: return@ejecutar
+        val lectura = estado.lectura ?: return@ejecutar
+        api.solicitar("api/lecturas/${lectura.id}/eliminar", "DELETE", token = sesion.token)
+        estado = estado.copy(
+            pantalla = Pantalla.PANEL_DOCENTE,
+            lectura = null,
+            lecturas = estado.lecturas.filterNot { it.id == lectura.id },
+            gestion = estado.gestion.copy(preguntas = emptyList(), edicionPregunta = null),
+            aviso = "Lectura eliminada.",
+        )
+    }
+
     fun editarPregunta(pregunta: Pregunta?) {
         ir(Pantalla.EDITOR_PREGUNTA)
         estado = estado.copy(gestion = estado.gestion.copy(edicionPregunta = pregunta))

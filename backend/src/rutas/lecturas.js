@@ -14,6 +14,7 @@ const {
   obtenerLecturaParaEdicion,
   actualizarLectura,
   desactivarLectura,
+  eliminarLectura,
 } = require("../servicios/lecturas");
 const { autenticar, permitirRol } = require("../middleware/autenticacion");
 const { crearPregunta, obtenerPreguntas } = require("../servicios/preguntas");
@@ -411,4 +412,39 @@ router.delete("/:id", autenticar, permitirRol("DOCENTE"), async (req, res) => {
     });
   }
 });
+router.delete(
+  "/:id/eliminar",
+  autenticar,
+  permitirRol("DOCENTE"),
+  async (req, res) => {
+    sinCuerpo(req);
+    filtros(req);
+
+    const identificador = validarIdentificador(
+      req.params.id,
+      "El identificador de la lectura",
+    );
+    if (identificador.error) {
+      return res.status(400).json({
+        estado: "error",
+        mensaje: identificador.error,
+      });
+    }
+
+    try {
+      await eliminarLectura(identificador.datos);
+      return res.status(204).end();
+    } catch (error) {
+      if (error.estadoHTTP === 409) {
+        return res.status(409).json({ estado: "error", mensaje: error.message });
+      }
+      console.error("Error al eliminar lectura:", error.code || error.name);
+      return res.status(500).json({
+        estado: "error",
+        mensaje: "No se pudo eliminar la lectura.",
+      });
+    }
+  },
+);
+
 module.exports = router;

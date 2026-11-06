@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Caña Dulce - API y permisos",
-    "description": "19 operaciones de negocio, salud y sesión. Ejecutar en orden con claves privadas locales. Crea su propio perfil y actividad; al terminar desactiva la lectura y conserva los datos de demostración.",
+    "description": "20 operaciones de negocio, salud y sesión. Ejecutar en orden con claves privadas locales. Crea su propio perfil y actividad; al terminar desactiva la lectura y conserva los datos de demostración. Incluye el borrado de un borrador propio y la protección de lecturas con historial.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -1145,6 +1145,190 @@
             "exec": [
               "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
               "pm.test('Historial conservado',()=>pm.expect(pm.response.json().puntaje).to.eql(100));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 - Proteger eliminación de lectura con historial",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLectura}}/eliminar",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 - Crear borrador para comprobar eliminación",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Borrador para eliminar {{sufijo}}\",\n  \"contenido\": \"Una niña sembró una semilla y la cuidó cada mañana hasta que nació una planta.\",\n  \"grado\": 3,\n  \"dificultad\": \"BAJA\",\n  \"categoria\": \"Naturaleza\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"idLecturaEliminar\", pm.response.json().idLectura);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 - Eliminar borrador sin intentos",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLecturaEliminar}}/eliminar",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "30 - Verificar lectura eliminada",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLecturaEliminar}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "31 - Repetir eliminación sin duplicar efectos",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/lecturas/{{idLecturaEliminar}}/eliminar",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDocente}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
             ]
           }
         }

@@ -6,11 +6,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.canadulce.app.datos.Companero
 import com.canadulce.app.datos.EstadoApp
@@ -44,20 +40,19 @@ fun PantallaEntrenamiento(estado: EstadoApp, onVolver: () -> Unit) {
     var indice by rememberSaveable { mutableIntStateOf(0) }
     var eleccion by rememberSaveable { mutableIntStateOf(-1) }
     var pulso by rememberSaveable { mutableIntStateOf(0) }
+    var pulsoVisible by remember { mutableIntStateOf(0) }
     val reto = retos[indice]
     val acierto = eleccion == reto.correcta
     val lista = rememberLazyListState()
-    LaunchedEffect(pulso, eleccion) {
-        if (eleccion >= 0) {
+    LaunchedEffect(indice, pulso, eleccion) {
+        if (eleccion < 0) {
+            lista.scrollToItem(0)
+        } else {
             val indiceMensaje = 4 + reto.opciones.size
             if (permiteMovimiento(estado.movimiento)) lista.animateScrollToItem(indiceMensaje)
             else lista.scrollToItem(indiceMensaje)
+            pulsoVisible = pulso
         }
-    }
-    val gesto = when {
-        eleccion == -1 -> GestoOrbital.FLOTAR
-        acierto -> GestoOrbital.CELEBRAR
-        else -> GestoOrbital.ANIMAR
     }
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -91,7 +86,10 @@ fun PantallaEntrenamiento(estado: EstadoApp, onVolver: () -> Unit) {
         reto.opciones.forEachIndexed { i, opcion ->
             item {
                 OutlinedButton(
-                    onClick = { eleccion = i; pulso++ },
+                    onClick = {
+                        eleccion = i
+                        pulso++
+                    },
                     enabled = !acierto,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                 ) { Text(opcion) }
@@ -99,20 +97,13 @@ fun PantallaEntrenamiento(estado: EstadoApp, onVolver: () -> Unit) {
         }
         if (eleccion >= 0) {
             item {
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        PersonajeOrbital(companero, estado.movimiento, Modifier.size(94.dp), gesto, pulso)
-                        Column(Modifier.weight(1f).padding(start = 8.dp)) {
-                            Text(
-                                if (acierto) "¡Acertaste!" else "Probemos otra vez",
-                                color = if (acierto) MentaOrbital else OroOrbital,
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                            )
-                            Text(if (acierto) "¡Encontraste la pista en la historia!" else reto.pista)
-                        }
-                    }
-                }
+                ReaccionRespuesta(
+                    companero, estado.movimiento, acierto,
+                    if (acierto) "¡Acertaste!" else "Probemos otra vez",
+                    if (acierto) "¡Encontraste la pista en la historia!" else reto.pista,
+                    pulsoVisible,
+                    iniciar = pulsoVisible == pulso,
+                )
             }
         }
         if (acierto) {
@@ -124,8 +115,5 @@ fun PantallaEntrenamiento(estado: EstadoApp, onVolver: () -> Unit) {
                 }
             }
         }
-    }
-    LaunchedEffect(indice) {
-        if (eleccion == -1) lista.scrollToItem(0)
     }
 }

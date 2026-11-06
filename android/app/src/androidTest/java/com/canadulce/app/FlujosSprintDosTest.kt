@@ -5,6 +5,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
 import com.canadulce.app.datos.ApiCanaDulce
 import java.io.File
@@ -60,10 +61,13 @@ class FlujosSprintDosTest {
     }
 
     private fun escribir(campo: String, texto: String) {
+        closeSoftKeyboard()
         esperar(campo)
         val nodo = interfaz.onNodeWithText(campo)
         runCatching { nodo.performScrollTo() }
-        nodo.performTextInput(texto)
+        interfaz.waitForIdle()
+        interfaz.onNodeWithText(campo).performTextInput(texto)
+        closeSoftKeyboard()
     }
 
     private fun capturar(nombre: String) {
@@ -154,7 +158,10 @@ class FlujosSprintDosTest {
         escribir("Usuario docente", "docente")
         escribir("Contraseña", "PruebaDocente42")
         pulsar("Entrar al área docente")
+        esperar("Biblioteca de lecturas")
+        capturar("Docente_01_Biblioteca")
         pulsar("Nueva lectura")
+        capturar("Docente_02_Editor_Lectura")
         escribir("Título", titulo)
         escribir("Texto de la lectura", "La tripulación guardó las semillas para el viaje a la Luna.")
         pulsar("Guardar lectura")
@@ -165,6 +172,7 @@ class FlujosSprintDosTest {
         escribir("Categoría (opcional)", "Exploración")
         pulsar("Guardar lectura")
         pulsar("Agregar pregunta")
+        capturar("Docente_03_Editor_Pregunta")
         escribir("Enunciado", "¿Qué guardó la tripulación?")
         escribir("Opción A", "Semillas")
         escribir("Opción B", "Rocas")
@@ -173,13 +181,15 @@ class FlujosSprintDosTest {
             .performScrollTo().performClick()
         pulsar("Guardar pregunta")
         pulsar("Editar pregunta")
-        interfaz.onNodeWithText("Opción B").performTextClearance()
+        esperar("Opción B")
+        interfaz.onNodeWithText("Opción B").performScrollTo().performTextClearance()
         escribir("Opción B", "Rocas lunares")
         pulsar("Guardar pregunta")
         esperar("Rocas lunares", parcial = true)
         pulsar("Publicar misión")
         esperar("Misión publicada.")
         capturar("Sprint2_06_Gestion_docente")
+        capturar("Docente_04_Gestion")
         pulsar("Desactivar pregunta")
         pulsar("Confirmar desactivación")
         esperar("Una lectura publicada debe conservar al menos una pregunta activa válida.")
@@ -193,14 +203,37 @@ class FlujosSprintDosTest {
         esperar("Pregunta desactivada.")
         pulsar("‹ Área docente")
         pulsar("Estudiantes")
+        esperar("Seguimiento del aula")
+        capturar("Docente_05_Estudiantes")
         escribir("Buscar por alias", alias)
         pulsar("Grado: todos ▾")
         pulsar("4")
+        pulsar("Estado: todos ▾")
+        pulsar("ACTIVO")
         val ficha = hasText(alias) and hasText("Consultar progreso →") and isEnabled()
         interfaz.waitUntil(12_000) {
             interfaz.onAllNodes(ficha).fetchSemanticsNodes(false).size == 1
         }
         interfaz.onNode(ficha).performScrollTo().performClick()
         esperar("4.º grado · Cadete espacial")
+        capturar("Docente_06_Progreso")
+        pulsar("‹ Estudiantes")
+        pulsar("Lecturas")
+        escribir("Buscar una lectura", titulo)
+        val fichaLectura = hasText(titulo) and hasText("Administrar lectura →") and isEnabled()
+        interfaz.waitUntil(12_000) {
+            interfaz.onAllNodes(fichaLectura).fetchSemanticsNodes(false).size == 1
+        }
+        interfaz.onNode(fichaLectura).performScrollTo().performClick()
+        pulsar("Eliminar lectura")
+        esperar("¿Eliminar esta lectura?")
+        capturar("Docente_07_Confirmacion")
+        pulsar("Cancelar")
+        esperar("Prepara tu misión")
+        pulsar("Eliminar lectura")
+        pulsar("Confirmar eliminación")
+        esperar("Lectura eliminada.")
+        esperar("No hay lecturas que coincidan con la búsqueda.")
+        capturar("Docente_08_Eliminada")
     }
 }

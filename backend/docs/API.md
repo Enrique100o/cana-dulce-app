@@ -29,6 +29,7 @@ del token; no existe una lista de revocación de JWT en el servidor.
 | 17 | GET `/api/intentos/:id` | Propietario o docente | 200, intento y resultado si existe |
 | 18 | POST `/api/intentos/:id/finalizar` | Estudiante propietario | 200, resultado y respuestas |
 | 19 | GET `/api/estudiantes/:id/progreso` | Propietario o docente | 200, resumen e insignias |
+| 20 | DELETE `/api/lecturas/:id/eliminar` | Docente | 204, eliminación de una lectura sin intentos |
 
 Rutas auxiliares: GET `/health` comprueba API y MySQL; GET `/api/sesiones/actual`
 valida la sesión. No se reciben cuerpos en consultas GET ni en DELETE.
@@ -88,6 +89,11 @@ Después del primer intento la lectura, sus preguntas y opciones quedan bloquead
 para edición. Puede desactivarse la lectura: deja de admitir nuevos intentos, pero
 los pendientes pueden finalizar y el historial continúa disponible.
 La desactivación de preguntas también respeta las reglas de publicación e historial.
+
+La eliminación permanente requiere confirmación en Android. Borra la lectura y sus
+preguntas y opciones dentro de una transacción. Si tiene cualquier intento, devuelve
+409 y conserva todos los registros. Usa el mismo bloqueo de lectura que el inicio de
+intentos y la edición de preguntas. Repetir una eliminación ya completada devuelve 204.
 
 ## Filtros y autorización
 

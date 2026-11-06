@@ -194,6 +194,31 @@ async function desactivarLectura(idLectura) {
     );
   });
 }
+
+async function eliminarLectura(idLectura) {
+  return ejecutarTransaccion(async (conexion) => {
+    const lectura = await obtenerLecturaParaEdicion(idLectura, conexion);
+
+    if (!lectura) return;
+
+    if (lectura.bloqueadaParaEdicion) {
+      fallar(
+        409,
+        "Esta lectura tiene intentos de estudiantes. Puedes desactivarla para conservar su historial.",
+      );
+    }
+
+    await conexion.execute(
+      `DELETE o FROM OPCION o
+       JOIN PREGUNTA p ON p.idPregunta = o.idPregunta
+       WHERE p.idLectura = ?`,
+      [idLectura],
+    );
+    await conexion.execute("DELETE FROM PREGUNTA WHERE idLectura = ?", [idLectura]);
+    await conexion.execute("DELETE FROM LECTURA WHERE idLectura = ?", [idLectura]);
+  });
+}
+
 module.exports = {
   esLecturaPublicable,
   obtenerLectura,
@@ -201,4 +226,5 @@ module.exports = {
   puedeConsultarLectura,
   actualizarLectura,
   desactivarLectura,
+  eliminarLectura,
 };
