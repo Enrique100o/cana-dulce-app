@@ -17,3 +17,7 @@ captures/
 *.aab
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.dpapi
+*.idsig

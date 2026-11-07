@@ -9,10 +9,22 @@ Android en Kotlin, una API en Node.js y una base de datos MySQL.
 - Comprobación de conexión: https://cana-dulce-api.onrender.com/health
 - Repositorio: https://github.com/Enrique100o/cana-dulce-app
 - Entrega del Sprint 1 (APK, informe y pruebas): https://github.com/Enrique100o/cana-dulce-app/releases/tag/sprint-1
-- Entrega final 1.2 (APK, manuales y evidencias): https://github.com/Enrique100o/cana-dulce-app/releases/tag/v1.2.0
+- Entrega final (APK 1.2.3, manuales y evidencias): https://github.com/Enrique100o/cana-dulce-app/releases/tag/entrega-final
 - Tablero de historias de usuario: https://trello.com/b/TsyyJWpL/cana-dulce
 
 La dirección `/health` devuelve JSON con el estado del servidor y su conexión a MySQL.
+Existe una API publicada; sus endpoints son operaciones del mismo backend.
+
+## Entregas
+
+| Entrega | Código | Material |
+|---|---|---|
+| Sprint 1 | Rama `sprint-1` | APK, informe y evidencias de la revisión inicial. |
+| Entrega final | Rama `main` | APK 1.2.3, manuales actualizados, guía de sustentación y evidencias consolidadas. |
+
+La entrega final acumula la funcionalidad de los sprints. La validación real con el
+cliente se realizará al final; también queda por verificar el teléfono físico y el
+cierre y acceso al tablero. Las comprobaciones registradas de Android usan emulador.
 
 ## Estructura
 
@@ -22,8 +34,9 @@ La dirección `/health` devuelve JSON con el estado del servidor y su conexión 
 - `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
 - `android/app/src/main/java/com/canadulce/app/ui/pantallas`: una pantalla por archivo.
 - `android/app/src/main/java/com/canadulce/app/ui/componentes`: controles y tarjetas compartidos.
-- `backend/docs/API.md`: contrato de las 21 operaciones de negocio.
-- `backend/postman/CanaDulce.postman_collection.json`: colección ordenada de pruebas HTTP.
+- `docs/API.md`: contrato vigente de las 21 operaciones de negocio.
+- `docs/CanaDulce.postman_collection.json`: única colección vigente de pruebas HTTP.
+- `docs/VALIDACION.md`: resultados, procedimiento y pendientes de entrega.
 - `render.yaml`: configuración de despliegue del backend.
 
 ## Ejecutar el backend
@@ -90,7 +103,7 @@ El backend también incluye edición y desactivación de preguntas, historial e 
 intentos, entrega de respuestas, calificación, estrellas, progreso e insignias. El servidor
 calcula los resultados y protege la edición de actividades que ya tienen intentos.
 
-## Aplicación Android - Entrega 1.2
+## Aplicación Android - Entrega final 1.2.3
 
 - Estudiantes: registro, acceso, búsqueda de misiones por grado, lectura ajustable,
   cuestionario reanudable, resultados, insignias y bitácora.
@@ -118,12 +131,12 @@ se valida al reabrir la aplicación.
 
 Desde PowerShell, en `android`, `./gradlew.bat :app:assembleDebug` genera un APK
 de desarrollo. `./gradlew.bat :app:assembleRelease` genera el APK de distribución
-sin firmar. La publicación incluye el APK 1.2 firmado con su clave de distribución.
+sin firmar. La publicación incluye el APK 1.2.3 firmado con su clave de distribución.
 Android exige conservar esa firma para actualizar la instalación.
 
 ## Verificación
 
-Resultados y procedimiento de comprobación: [backend/docs/VALIDACION.md](backend/docs/VALIDACION.md).
+Resultados y procedimiento de comprobación: [docs/VALIDACION.md](docs/VALIDACION.md).
 
 La validación del backend cubre registros, roles, filtros, CRUD, intentos concurrentes,
 calificación, idempotencia y conservación del historial. La colección de Postman incluye
