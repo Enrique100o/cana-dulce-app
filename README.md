@@ -9,22 +9,22 @@ Android en Kotlin, una API en Node.js y una base de datos MySQL.
 - Comprobación de conexión: https://cana-dulce-api.onrender.com/health
 - Repositorio: https://github.com/Enrique100o/cana-dulce-app
 - Entrega del Sprint 1 (APK, informe y pruebas): https://github.com/Enrique100o/cana-dulce-app/releases/tag/sprint-1
-- Entrega final (APK 1.2.3, manuales y evidencias): https://github.com/Enrique100o/cana-dulce-app/releases/tag/entrega-final
+- Publicación final y descargas de la versión 1.2.3: https://github.com/Enrique100o/cana-dulce-app/releases/tag/entrega-final
 - Tablero de historias de usuario: https://trello.com/b/TsyyJWpL/cana-dulce
 
 La dirección `/health` devuelve JSON con el estado del servidor y su conexión a MySQL.
 Existe una API publicada; sus endpoints son operaciones del mismo backend.
 
-## Entregas
+## Entrega final
 
-| Entrega | Código | Material |
-|---|---|---|
-| Sprint 1 | Rama `sprint-1` | APK, informe y evidencias de la revisión inicial. |
-| Entrega final | Rama `main` | APK 1.2.3, manuales actualizados, guía de sustentación y evidencias consolidadas. |
+- [Descargar APK 1.2.3](Cana_Dulce.apk?raw=true)
+- [Manual de usuario para estudiantes y docentes](docs/Manual_de_Usuario_Cana_Dulce.pdf)
+- [Manual técnico](docs/Manual_Tecnico_Cana_Dulce.pdf)
+- [Validación con el cliente](docs/Validacion_con_cliente_Cana_Dulce.pdf)
 
-La entrega final acumula la funcionalidad de los sprints. La validación real con el
-cliente se realizará al final; también queda por verificar el teléfono físico y el
-cierre y acceso al tablero. Las comprobaciones registradas de Android usan emulador.
+El acta firmada y las fotos de la actividad con la docente y los estudiantes
+están reunidas en el PDF de validación. La rama `sprint-1` conserva el avance
+de la revisión inicial.
 
 ## Estructura
 
@@ -34,9 +34,7 @@ cierre y acceso al tablero. Las comprobaciones registradas de Android usan emula
 - `android`: aplicación Kotlin con Jetpack Compose y conexión HTTPS a Render.
 - `android/app/src/main/java/com/canadulce/app/ui/pantallas`: una pantalla por archivo.
 - `android/app/src/main/java/com/canadulce/app/ui/componentes`: controles y tarjetas compartidos.
-- `docs/API.md`: contrato vigente de las 21 operaciones de negocio.
-- `docs/CanaDulce.postman_collection.json`: única colección vigente de pruebas HTTP.
-- `docs/VALIDACION.md`: resultados, procedimiento y pendientes de entrega.
+- `docs/` contiene los manuales y la validación con el cliente.
 - `render.yaml`: configuración de despliegue del backend.
 
 ## Ejecutar el backend
@@ -136,12 +134,9 @@ Android exige conservar esa firma para actualizar la instalación.
 
 ## Verificación
 
-Resultados y procedimiento de comprobación: [docs/VALIDACION.md](docs/VALIDACION.md).
-
-La validación del backend cubre registros, roles, filtros, CRUD, intentos concurrentes,
-calificación, idempotencia y conservación del historial. La colección de Postman incluye
-comprobaciones de estado HTTP, permisos, estructura y resultados. Introduce las claves
-en variables locales de Postman; la colección publicada no contiene credenciales reales.
+El manual técnico describe las pruebas del backend y de Android e incluye enlaces
+al contrato HTTP, a la colección de Postman y al registro de pruebas de la
+revisión documentada.
 
 En Android, `FlujosSprintUnoTest` comprueba registro, duplicados, accesos inválidos y
 válidos, búsqueda, lectura, conservación de tamaño, recuperación de sesión y cierre.
